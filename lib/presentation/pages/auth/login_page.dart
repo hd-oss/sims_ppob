@@ -1,8 +1,9 @@
-// lib/presentation/pages/auth/login_page.dart
+
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../providers/auth/auth_providers.dart';
+import '../../../common/result_state.dart';
+import '../../providers/auth/login_provider.dart';
 
 class LoginPage extends ConsumerWidget {
   final TextEditingController usernameController = TextEditingController();
@@ -12,8 +13,14 @@ class LoginPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final authState = ref.watch(authControllerProvider);
-    final authController = ref.read(authControllerProvider.notifier);
+    final loginState = ref.watch(loginProvider);
+
+    if (loginState.status == Status.SUCCESS) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Navigator.pushReplacementNamed(context, '/home');
+      });
+    }
+
 
     return Scaffold(
       appBar: AppBar(title: const Text('Login')),
@@ -31,17 +38,17 @@ class LoginPage extends ConsumerWidget {
               obscureText: true,
             ),
             const SizedBox(height: 20),
-            if (authState.isLoading) const CircularProgressIndicator(),
-            if (authState.error != null) Text('Error: ${authState.error}'),
-            ElevatedButton(
-              onPressed: () {
-                authController.login(
-                  usernameController.text,
-                  passwordController.text,
-                );
-              },
-              child: const Text('Login'),
-            ),
+            loginState.status == Status.LOADING
+                ? const CircularProgressIndicator()
+                : ElevatedButton(
+                    onPressed: () => ref.read(loginProvider.notifier).login(
+                            usernameController.text,
+                            passwordController.text,
+                          ),
+                    child: const Text('Login'),
+                  ),
+            if (loginState.status == Status.ERROR)
+              Text('${loginState.message}'),
           ],
         ),
       ),

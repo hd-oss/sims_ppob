@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 
 import 'common/secure_storage_helper.dart';
@@ -20,6 +21,7 @@ void init() {
   // Data sources
   sl.registerLazySingleton<ApiService>(
       () => ApiService(sl<Dio>(), sl<SecureStorageHelper>()));
+      
   sl.registerLazySingleton<RemoteDataSource>(
       () => RemoteDataSource(apiService: sl<ApiService>()));
 

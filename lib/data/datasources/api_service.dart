@@ -1,28 +1,37 @@
 import 'package:dio/dio.dart';
+
+import 'package:talker_dio_logger/talker_dio_logger.dart';
 import '../../common/secure_storage_helper.dart';
 
 class ApiService {
   final Dio _dio;
   final SecureStorageHelper secureStorageHelper;
 
-  ApiService(this._dio, this.secureStorageHelper) {
-    _dio.options.baseUrl = 'https://take-home-test-api.nutech-integrasi.com';
-    _dio.options.headers['Content-Type'] = 'application/Map<String, dynamic>';
-    _dio.options.contentType = 'application/json';
-    _dio.interceptors.add(
-        InterceptorsWrapper(
-          onError: (DioException e, handler) {
-            if (e.response?.statusCode == 401) {}
-            return handler.next(e);
-          },
-          onResponse: (e, handler) async {
-            if (e.statusCode == 401) {
-              await secureStorageHelper.deleteToken();
-            }
-            return handler.next(e);
-          },
-        ),
-      );
+  ApiService(
+    this._dio,
+    this.secureStorageHelper,
+  ) {
+    _dio.options = BaseOptions(
+        baseUrl: 'https://take-home-test-api.nutech-integrasi.com',
+        receiveDataWhenStatusError: true,
+        contentType: Headers.jsonContentType,
+        validateStatus: (value) => true);
+    _dio.interceptors.addAll([
+      TalkerDioLogger(
+        settings: const TalkerDioLoggerSettings(printRequestHeaders: true),
+      ),
+      InterceptorsWrapper(
+        onError: (DioException e, handler) {
+          if (e.response?.statusCode == 401) {}
+          handler.next(e);
+        },
+        onResponse: (e, handler) async {
+          if (e.statusCode == 401) await secureStorageHelper.deleteToken();
+
+          handler.next(e);
+        },
+      ),
+    ]);
   }
 
   Future<void> _setToken() async {

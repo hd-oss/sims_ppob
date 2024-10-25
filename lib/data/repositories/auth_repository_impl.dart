@@ -1,10 +1,7 @@
 import 'package:dartz/dartz.dart';
-import 'package:dio/dio.dart';
 
 import '../../common/secure_storage_helper.dart';
-import '../../domain/entities/user_entity.dart';
 import '../../domain/repositories/auth_repository.dart';
-import '../datasources/api_service.dart';
 import '../datasources/remote_datasources.dart';
 import '../models/user_model.dart';
 
@@ -23,12 +20,8 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<void> saveToken(String token) async {
-    await secureStorageHelper.writeToken(token);
-  }
+  Future<void> saveToken(String token) async => await secureStorageHelper.writeToken(token);
 
   @override
-  Future<void> deleteToken() async {
-    await secureStorageHelper.deleteToken();
-  }
+  Future<void> deleteToken() async => await secureStorageHelper.deleteToken();
 }

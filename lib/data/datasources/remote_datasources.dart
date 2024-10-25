@@ -12,12 +12,12 @@ class RemoteDataSource {
   Future<Either<String, UserModel>> login(String email, String password) async {
     try {
       final response = await apiService.post('/login',
-          data: {'username': email, 'password': password},
+          data: {'email': email, 'password': password},
           requiresAuthToken: false);
       if (response.statusCode == 200) {
-        return Right(UserModel.fromJson(response.data));
+        return Right(UserModel.fromJson(response.data['data']));
       } else {
-        return Left(response.statusMessage ?? 'Terjadi Kesahalan');
+        return Left(response.data['message'] ?? 'Terjadi Kesahalan');
       }
     } on DioException catch (error) {
       return Left(error.message.toString());

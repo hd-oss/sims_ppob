@@ -3,3 +3,4 @@ class UserEntity {
 
   UserEntity({this.token});
 }
+ 
