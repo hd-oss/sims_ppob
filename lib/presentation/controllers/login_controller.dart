@@ -1,26 +1,39 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../common/result_state.dart';
-import '../../domain/usecases/login_usecase.dart';
+import '../../domain/usecases/auth_usecase.dart';
 
-class LoginController extends StateNotifier<ResultState<String>> {
-  final LoginUseCase loginUseCase;
+class LoginState {
+  final bool isHide;
+  final ResultState<String>? loginResult;
 
-  LoginController(this.loginUseCase) : super(ResultState());
+  LoginState({this.isHide = true, this.loginResult});
 
-  Future<void> login(String username, String password) async {
-    state = ResultState.loading();
+  LoginState copyWith({bool? isHide, ResultState<String>? loginResult}) {
+    return LoginState(
+        isHide: isHide ?? this.isHide,
+        loginResult: loginResult ?? this.loginResult);
+  }
+}
+
+class LoginController extends StateNotifier<LoginState> {
+  final AuthUseCase loginUseCase;
+
+  LoginController(this.loginUseCase) : super(LoginState());
+
+  Future<void> login(String email, String password) async {
+    state = state.copyWith(loginResult: ResultState.loading());
 
     try {
-      final user = await loginUseCase.execute(username, password);
+      final result = await loginUseCase.login(email, password);
 
-      user.fold(
-        (message) => state = ResultState.error(message),
-        (data) => loginUseCase
-            .saveToken(data.token!)
-            .then((value) => state = ResultState.success('Berhasil login')),
-      );
+      state = state.copyWith(loginResult: result);
     } catch (e) {
-      state = ResultState.error(e.toString());
+      state = state.copyWith(loginResult: ResultState.error(e.toString()));
     }
   }
+
+  void hidePassword() => state = state.copyWith(isHide: !state.isHide);
+
+  void resetState() => state = LoginState();
 }

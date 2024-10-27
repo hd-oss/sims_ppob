@@ -45,18 +45,18 @@ class ApiService {
   }
 
   Future<Response> get(String path,
-      {Map<String, dynamic>? queryParameters,
+      {Map<String, dynamic>? prameters,
       required bool requiresAuthToken}) async {
     if (requiresAuthToken) await _setToken();
-    return await _dio.get(path, queryParameters: queryParameters);
+    return await _dio.get(path, queryParameters: prameters);
   }
 
   Future<Response> post(String path,
       {Object? data,
-      Map<String, dynamic>? queryParameters,
+      Map<String, dynamic>? prameters,
       required bool requiresAuthToken}) async {
     if (requiresAuthToken) await _setToken();
-    return await _dio.post(path, queryParameters: queryParameters, data: data);
+    return await _dio.post(path, queryParameters: prameters, data: data);
   }
 
   Future<Response> delete(String path,
@@ -68,9 +68,12 @@ class ApiService {
   Future<Response> put(String path,
       {Object? data,
       required bool requiresAuthToken,
-      Map<String, dynamic>? queryParameters}) async {
+      dynamic prameters}) async {
     if (requiresAuthToken) await _setToken();
-    return await _dio.put(path, data: data, queryParameters: queryParameters);
+    if (prameters is FormData) {
+      _dio.options.headers['Content-Type'] = ' multipart/form-data';
+    }
+    return await _dio.put(path, data: prameters);
   }
 
   void handleError(DioException error) {

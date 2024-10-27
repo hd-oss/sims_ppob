@@ -1,19 +1,39 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:sims_ppob/presentation/pages/auth/login_page.dart';
+import 'package:sims_ppob/presentation/pages/home/home_page.dart';
+import 'package:sims_ppob/presentation/pages/splash_page.dart';
 
+import 'common/secure_storage_helper.dart';
+import 'injection_container.dart';
+import 'presentation/pages/home/home_route.dart';
 
-class AppRouter {
-  Route<dynamic> generateRoute(RouteSettings settings) {
-    switch (settings.name) {
-      case '/':
-        return MaterialPageRoute(builder: (_) => LoginPage());
+import 'app_router.gr.dart';
 
-      default:
-        return MaterialPageRoute(
-          builder: (_) => const Scaffold(
-            body: Center(child: Text('Page not found')),
-          ),
-        );
+@AutoRouterConfig(generateForDir: ['lib'])
+class RootRouter extends $RootRouter {
+  @override
+  final List<AutoRoute> routes = [
+    AutoRoute(
+      page: SplashRoute.page,
+      path: '/',
+    ),
+    AutoRoute(page: LoginRoute.page, path: '/login'),
+    AutoRoute(page: RegistrasionRoute.page, path: '/regitrasion'),
+    homeRoutes,
+    RedirectRoute(path: '*', redirectTo: '/'),
+  ];
+}
+
+class AuthGuard extends AutoRouteGuard {
+  @override
+  Future<void> onNavigation(
+      NavigationResolver resolver, StackRouter router) async {
+    final String? token = await sl<SecureStorageHelper>().readToken();
+    if (token != null) {
+      resolver.next(true);
+    } else {
+      router.pushAndPopUntil(LoginRoute(), predicate: (route) => false);
     }
   }
 }
