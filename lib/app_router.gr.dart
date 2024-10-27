@@ -18,7 +18,7 @@ import 'package:sims_ppob/presentation/pages/profile/profile_page.dart' as _i5;
 import 'package:sims_ppob/presentation/pages/registrasion/registrasion_page.dart'
     as _i6;
 import 'package:sims_ppob/presentation/pages/splash_page.dart' as _i7;
-import 'package:sims_ppob/presentation/pages/top_up/top_up.dart' as _i8;
+import 'package:sims_ppob/presentation/pages/top_up/topup_page.dart' as _i8;
 import 'package:sims_ppob/presentation/pages/transaction/transacion_page.dart'
     as _i9;
 

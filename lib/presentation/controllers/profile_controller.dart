@@ -41,7 +41,7 @@ class ProfileController extends StateNotifier<ProfileState> {
   ProfileController(this.profileUseCase, this.authUseCase)
       : super(ProfileState());
 
-  Future<void> getProfile() async {
+  Future<void> initState() async {
     state = ProfileState(userData: ResultState.loading());
 
     try {
@@ -89,6 +89,8 @@ class ProfileController extends StateNotifier<ProfileState> {
   }
 
   void editEvent() => state = state.copyWith(isEditEvent: !state.isEditEvent);
+
+  void resetState() => state = ProfileState();
 
   void logoutEvent(BuildContext context) =>
       authUseCase.logout().then((value) => context.router

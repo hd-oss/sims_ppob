@@ -134,6 +134,7 @@ class _RegistrasionPageState extends ConsumerState<RegistrasionPage> {
                 ? Icons.visibility_off_rounded
                 : Icons.visibility_rounded),
           ),
+          keyboardType: TextInputType.visiblePassword,
           hide: registState.isHide,
           validator: (value) => validatePassword(value) ??
             requiredField(value),
@@ -153,6 +154,7 @@ class _RegistrasionPageState extends ConsumerState<RegistrasionPage> {
                   : Icons.visibility_rounded,
             ),
           ),
+          keyboardType: TextInputType.visiblePassword,
           hide: registState.isHideCofirm,
           validator: (value) {
             if (value != registState.params?.password) {
@@ -170,6 +172,7 @@ class _RegistrasionPageState extends ConsumerState<RegistrasionPage> {
     required String hintText,
     required dynamic icon,
     required RegistState registState,
+    TextInputType? keyboardType,
     bool hide = false,
     Widget? suffixIcon,
     String? Function(String?)? validator,
@@ -191,6 +194,7 @@ class _RegistrasionPageState extends ConsumerState<RegistrasionPage> {
       onChanged: (value) =>
           ref.read(registProvider.notifier).setParams(attribute, value),
       obscureText: hide,
+      keyboardType: keyboardType,
       validator: validator,
       textInputAction: TextInputAction.next,
       autovalidateMode: AutovalidateMode.onUserInteraction,

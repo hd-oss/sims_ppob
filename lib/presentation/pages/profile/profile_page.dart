@@ -84,31 +84,29 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
       data = profileState.userData?.data as UserModel;
     }
 
-    return SafeArea(
-      child: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            children: [
-              _buildProfileImage(data?.profileImage),
-              const SizedBox(height: 16),
-              _buildUserName(data),
-              const SizedBox(height: 24),
-              _buildFormField('Email', data?.email, readOnly: true),
-              const SizedBox(height: 24),
-              _buildFormField('Nama Depan', firstNameController,
-                  isEditable: profileState.isEditEvent,
-                  readOnly: !profileState.isEditEvent),
-              const SizedBox(height: 24),
-              _buildFormField('Nama Belakang', lastNameController,
-                  isEditable: profileState.isEditEvent,
-                  readOnly: !profileState.isEditEvent),
-              const SizedBox(height: 24),
-              _buildActionButton(profileState.isEditEvent),
-              const SizedBox(height: 24),
-              _buildLogoutButton(context, profileState.isEditEvent),
-            ],
-          ),
+    return Center(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            _buildProfileImage(data?.profileImage),
+            const SizedBox(height: 16),
+            _buildUserName(data),
+            const SizedBox(height: 24),
+            _buildFormField('Email', data?.email, readOnly: true),
+            const SizedBox(height: 24),
+            _buildFormField('Nama Depan', firstNameController,
+                isEditable: profileState.isEditEvent,
+                readOnly: !profileState.isEditEvent),
+            const SizedBox(height: 24),
+            _buildFormField('Nama Belakang', lastNameController,
+                isEditable: profileState.isEditEvent,
+                readOnly: !profileState.isEditEvent),
+            const SizedBox(height: 24),
+            _buildActionButton(profileState.isEditEvent),
+            const SizedBox(height: 24),
+            _buildLogoutButton(context, profileState.isEditEvent),
+          ],
         ),
       ),
     );
@@ -259,6 +257,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
       style: OutlinedButton.styleFrom(
         backgroundColor: isEdit ? Colors.red : Colors.white,
         foregroundColor: !isEdit ? Colors.red : Colors.white,
+        
       ),
       onPressed: () => ref.read(profileProvider.notifier).logoutEvent(context),
       child: const Text('Logout'),

@@ -1,14 +1,9 @@
 import 'package:auto_route/auto_route.dart';
-import 'package:flutter/material.dart';
-import 'package:sims_ppob/presentation/pages/auth/login_page.dart';
-import 'package:sims_ppob/presentation/pages/home/home_page.dart';
-import 'package:sims_ppob/presentation/pages/splash_page.dart';
 
+import 'app_router.gr.dart';
 import 'common/secure_storage_helper.dart';
 import 'injection_container.dart';
 import 'presentation/pages/home/home_route.dart';
-
-import 'app_router.gr.dart';
 
 @AutoRouterConfig(generateForDir: ['lib'])
 class RootRouter extends $RootRouter {
