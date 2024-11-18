@@ -22,19 +22,17 @@ class ProfilePage extends ConsumerStatefulWidget {
 }
 
 class _ProfilePageState extends ConsumerState<ProfilePage> {
-  
   final TextEditingController firstNameController = TextEditingController();
   final TextEditingController lastNameController = TextEditingController();
-  
 
   @override
   void initState() {
     super.initState();
-    
+
     // addPostFrameCallbackOnce(() {
     //   final profileState = ref.read(profileProvider);
     //   if (profileState.userData == null) {
-        
+
     //   }
     // });
   }
@@ -50,6 +48,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     final profileState = ref.watch(profileProvider);
+    final _formKey = GlobalKey<FormState>();
 
     ref.listen<ProfileState>(profileProvider, (previous, next) {
       addPostFrameCallbackOnce(() {
@@ -61,7 +60,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
               context,
               next.userData?.status == Status.SUCCESS
                   ? 'Berhasil edit profile'
-                  : 'Gagal edit profile',
+                  : next.userData?.message ?? 'Gagal edit profile',
               next.userData?.status == Status.SUCCESS
                   ? Colors.green
                   : Colors.red);
@@ -73,40 +72,51 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
       return const Center(child: CircularProgressIndicator());
     }
 
-    UserModel? data;
-    if (profileState.userData?.status == Status.SUCCESS) {
-      data = profileState.userData?.data as UserModel;
-      firstNameController.text = data.firstName ?? '-';
-      lastNameController.text = data.lastName ?? '-';
-    }
+    final data = profileState.userData?.data;
 
-    if (profileState.userData?.data != null) {
-      data = profileState.userData?.data as UserModel;
-    }
+    firstNameController.text = data?.firstName ?? '';
+    lastNameController.text = data?.lastName ?? '';
 
     return Center(
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            _buildProfileImage(data?.profileImage),
-            const SizedBox(height: 16),
-            _buildUserName(data),
-            const SizedBox(height: 24),
-            _buildFormField('Email', data?.email, readOnly: true),
-            const SizedBox(height: 24),
-            _buildFormField('Nama Depan', firstNameController,
+        child: Form(
+          key: _formKey,
+          child: Column(
+            children: [
+              _buildProfileImage(data?.profileImage),
+              const SizedBox(height: 16),
+              _buildUserName(data),
+              const SizedBox(height: 24),
+              _buildFormField('Email', data?.email,
+                  readOnly: true,
+                  prefixIcon: Padding(
+                    padding: const EdgeInsets.all(14.0),
+                    child: Image.asset('assets/icons/at.png', width: 5),
+                  )),
+              const SizedBox(height: 24),
+              _buildFormField(
+                'Nama Depan',
+                firstNameController,
                 isEditable: profileState.isEditEvent,
-                readOnly: !profileState.isEditEvent),
-            const SizedBox(height: 24),
-            _buildFormField('Nama Belakang', lastNameController,
+                readOnly: !profileState.isEditEvent,
+                prefixIcon: const Icon(Icons.person_outline_rounded),
+              ),
+              const SizedBox(height: 24),
+              _buildFormField(
+                'Nama Belakang',
+                lastNameController,
                 isEditable: profileState.isEditEvent,
-                readOnly: !profileState.isEditEvent),
-            const SizedBox(height: 24),
-            _buildActionButton(profileState.isEditEvent),
-            const SizedBox(height: 24),
-            _buildLogoutButton(context, profileState.isEditEvent),
-          ],
+                readOnly: !profileState.isEditEvent,
+                prefixIcon: const Icon(Icons.person_outline_rounded),
+              ),
+              const SizedBox(height: 24),
+              _buildActionButton(
+                  profileState.isEditEvent, _formKey.currentState?.validate()),
+              const SizedBox(height: 24),
+              _buildLogoutButton(context, profileState.isEditEvent),
+            ],
+          ),
         ),
       ),
     );
@@ -151,18 +161,16 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
   }
 
   Widget _buildUserName(UserModel? data) {
-    return Text(
-      '${data?.firstName} ${data?.lastName}',
-      style: const TextStyle(
-        fontSize: 24,
-        fontWeight: FontWeight.bold,
-      ),
-      textAlign: TextAlign.center,
-    );
+    return Text('${data?.firstName ?? ''} ${data?.lastName ?? ''}',
+        style: const TextStyle(
+          fontSize: 24,
+          fontWeight: FontWeight.bold,
+        ),
+        textAlign: TextAlign.center);
   }
 
   Widget _buildFormField(String? label, dynamic initialValue,
-      {bool isEditable = false, bool readOnly = false}) {
+      {bool isEditable = false, bool readOnly = false, Widget? prefixIcon}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -176,12 +184,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
           readOnly: readOnly,
           decoration: InputDecoration(
             border: const OutlineInputBorder(),
-            prefixIcon: readOnly
-                ? Padding(
-                    padding: const EdgeInsets.all(14.0),
-                    child: Image.asset('assets/icons/at.png', width: 5),
-                  )
-                : const Icon(Icons.person_outline_rounded),
+            prefixIcon: prefixIcon,
           ),
           keyboardType: TextInputType.emailAddress,
           validator: isEditable ? requiredField : null,
@@ -234,7 +237,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
         : null);
   }
 
-  Widget _buildActionButton(bool isEdit) {
+  Widget _buildActionButton(bool isEdit, bool? isValidate) {
     return OutlinedButton(
       style: OutlinedButton.styleFrom(
         backgroundColor: !isEdit ? Colors.red : Colors.white,
@@ -257,7 +260,6 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
       style: OutlinedButton.styleFrom(
         backgroundColor: isEdit ? Colors.red : Colors.white,
         foregroundColor: !isEdit ? Colors.red : Colors.white,
-        
       ),
       onPressed: () => ref.read(profileProvider.notifier).logoutEvent(context),
       child: const Text('Logout'),

@@ -57,6 +57,11 @@ class ProfileController extends StateNotifier<ProfileState> {
       {required String firstName, required String lastName}) async {
     state = state.copyWith(userData: ResultState.loading(state.userData?.data));
 
+    if (firstName.isEmpty || lastName.isEmpty) {
+      state = state.copyWith(userData: ResultState.error('Lengkapi data'));
+      return;
+    }
+
     try {
       final result = await profileUseCase.editProfile(firstName, lastName,
           currentData: state.userData?.data);

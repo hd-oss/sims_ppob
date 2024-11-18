@@ -27,12 +27,11 @@ class DashboardState {
       ResultState<List<ServiceModel>>? serviceData,
       bool? hideSaldo}) {
     return DashboardState(
-      userData: userData ?? this.userData,
-      balanceData: balanceData ?? this.balanceData,
-      serviceData: serviceData ?? this.serviceData,
-      bannerData: bannerData ?? this.bannerData,
-      hideSaldo: hideSaldo ?? this.hideSaldo
-    );
+        userData: userData ?? this.userData,
+        balanceData: balanceData ?? this.balanceData,
+        serviceData: serviceData ?? this.serviceData,
+        bannerData: bannerData ?? this.bannerData,
+        hideSaldo: hideSaldo ?? this.hideSaldo);
   }
 }
 
@@ -50,13 +49,13 @@ class DashboardController extends StateNotifier<DashboardState> {
 
     state = nState;
 
-    getProfile(nState);
-    getBalance(nState);
-    getService(nState);
-    getBanner(nState);
+    getProfile();
+    getBalance();
+    getService();
+    getBanner();
   }
 
-  Future<void> getProfile(DashboardState nState) async {
+  Future<void> getProfile() async {
     try {
       final result = await dashBoardUseCase.getProfile();
 
@@ -66,7 +65,7 @@ class DashboardController extends StateNotifier<DashboardState> {
     }
   }
 
-  Future<void> getService(DashboardState nState) async {
+  Future<void> getService() async {
     try {
       final result = await dashBoardUseCase.getService();
 
@@ -76,7 +75,7 @@ class DashboardController extends StateNotifier<DashboardState> {
     }
   }
 
-  Future<void> getBalance(DashboardState nState) async {
+  Future<void> getBalance() async {
     try {
       final result = await dashBoardUseCase.getBalance();
 
@@ -86,7 +85,7 @@ class DashboardController extends StateNotifier<DashboardState> {
     }
   }
 
-  Future<void> getBanner(DashboardState nState) async {
+  Future<void> getBanner() async {
     try {
       final result = await dashBoardUseCase.getBanner();
 

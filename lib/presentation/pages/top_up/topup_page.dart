@@ -177,8 +177,8 @@ class TopupPage extends ConsumerWidget {
         final value = amount.replaceAll('.','');
         return ElevatedButton(
           onPressed: value.isNotEmpty &&
-                  int.parse(value) > 10000 &&
-                  int.parse(value) < 1000000
+                  int.parse(value) >= 10000 &&
+                  int.parse(value) <= 1000000
               ? () => DialogHelper.showConfirmationDialog(
                       context: context,
                       message: 'Anda yakin untuk Top Up sebesar',

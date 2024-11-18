@@ -1,5 +1,6 @@
 import 'package:dartz/dartz.dart';
 import 'package:dio/dio.dart';
+import 'package:sims_ppob/data/models/history_model.dart';
 import '../models/banner_model.dart';
 import '../models/service_model.dart';
 
@@ -31,6 +32,20 @@ class RemoteDataSource {
           data: {"top_up_amount": amount}, requiresAuthToken: false);
       if (response.statusCode == 200) {
         return Right(response.data['data']['balance']);
+      } else {
+        return Left(response.data['message'] ?? 'Terjadi Kesahalan');
+      }
+    } on DioException catch (error) {
+      return Left(error.message.toString());
+    }
+  }
+
+  Future<Either<String, String>> purches(String serviceCode) async {
+    try {
+      final response = await apiService.post('/transaction',
+          data: {"service_code": serviceCode}, requiresAuthToken: false);
+      if (response.statusCode == 200) {
+        return Right(response.data['message']);
       } else {
         return Left(response.data['message'] ?? 'Terjadi Kesahalan');
       }
@@ -89,6 +104,24 @@ class RemoteDataSource {
       if (response.statusCode == 200) {
         List<dynamic> jsonResponse = response.data['data'];
         final data = jsonResponse.map((e) => BannerModel.fromJson(e)).toList();
+        return Right(data);
+      } else {
+        return Left(response.data['message'] ?? 'Terjadi Kesahalan');
+      }
+    } on DioException catch (error) {
+      return Left(error.message.toString());
+    }
+  }
+
+  Future<Either<String, List<HistoryModel>>> getHistory(
+      int offset, int limit) async {
+    try {
+      final response = await apiService.get('/transaction/history',
+          prameters: {'offset': offset, 'limit': limit},
+          requiresAuthToken: true);
+      if (response.statusCode == 200) {
+        List<dynamic> jsonResponse = response.data['data']['records'];
+        final data = jsonResponse.map((e) => HistoryModel.fromJson(e)).toList();
         return Right(data);
       } else {
         return Left(response.data['message'] ?? 'Terjadi Kesahalan');

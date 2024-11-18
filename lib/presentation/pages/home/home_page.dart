@@ -60,6 +60,7 @@ class _HomePageState extends ConsumerState<HomePage> {
               case 2:
                 provider as TransactionController;
                 provider.initState();
+                provider.getHistory();
                 break;
               case 3:
                 provider as ProfileController;

@@ -6,17 +6,23 @@ import 'data/datasources/api_service.dart';
 import 'data/datasources/remote_datasources.dart';
 import 'data/repositories/auth_repository_impl.dart';
 import 'data/repositories/dashboard_repositry_impl.dart';
+import 'data/repositories/history_repository_impl.dart';
 import 'data/repositories/profile_repository_impl.dart';
+import 'data/repositories/purches_repository_impl.dart';
 import 'data/repositories/regist_repository_impl.dart';
-import 'data/repositories/topup_repository.dart';
+import 'data/repositories/topup_repository_impl.dart';
 import 'domain/repositories/auth_repository.dart';
 import 'domain/repositories/dashbard_repository.dart';
+import 'domain/repositories/history_repository.dart';
 import 'domain/repositories/profile_repository.dart';
+import 'domain/repositories/purches_repository.dart';
 import 'domain/repositories/regist_repository.dart';
 import 'domain/repositories/topup_repository.dart';
 import 'domain/usecases/auth_usecase.dart';
 import 'domain/usecases/dashboard_usecase.dart';
+import 'domain/usecases/history_usecase.dart';
 import 'domain/usecases/profile_usecase.dart';
+import 'domain/usecases/purches_usecase.dart';
 import 'domain/usecases/regist_usecase.dart';
 import 'domain/usecases/topup_usecase.dart';
 
@@ -45,6 +51,10 @@ void init() {
       () => DashboardRepositoryImpl(remoteDataSource: sl<RemoteDataSource>()));
   sl.registerLazySingleton<TopupRepository>(
       () => TopupRepositoryImpl(remoteDataSource: sl<RemoteDataSource>()));
+  sl.registerLazySingleton<PurchesRepository>(
+      () => PurchesRepositoryImpl(remoteDataSource: sl<RemoteDataSource>()));
+  sl.registerLazySingleton<HistoryRepository>(
+      () => HistoryRepositoryImpl(remoteDataSource: sl<RemoteDataSource>()));
 
   // Register Repository
   sl.registerLazySingleton<AuthRepositoryImpl>(() => AuthRepositoryImpl(
@@ -58,6 +68,10 @@ void init() {
       () => DashboardRepositoryImpl(remoteDataSource: sl<RemoteDataSource>()));
   sl.registerLazySingleton<TopupRepositoryImpl>(
       () => TopupRepositoryImpl(remoteDataSource: sl<RemoteDataSource>()));
+  sl.registerLazySingleton<PurchesRepositoryImpl>(
+      () => PurchesRepositoryImpl(remoteDataSource: sl<RemoteDataSource>()));
+  sl.registerLazySingleton<HistoryRepositoryImpl>(
+      () => HistoryRepositoryImpl(remoteDataSource: sl<RemoteDataSource>()));
 
   // Register UseCase
   sl.registerLazySingleton<AuthUseCase>(
@@ -70,4 +84,8 @@ void init() {
       () => DashBoardUseCase(sl<DashboardRepositoryImpl>()));
   sl.registerLazySingleton<TopupUseCase>(
       () => TopupUseCase(sl<TopupRepositoryImpl>()));
+  sl.registerLazySingleton<PurchesUseCase>(
+      () => PurchesUseCase(sl<PurchesRepositoryImpl>()));
+  sl.registerLazySingleton<HistoryUseCase>(
+      () => HistoryUseCase(sl<HistoryRepositoryImpl>()));
 }

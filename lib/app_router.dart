@@ -15,6 +15,7 @@ class RootRouter extends $RootRouter {
     ),
     AutoRoute(page: LoginRoute.page, path: '/login'),
     AutoRoute(page: RegistrasionRoute.page, path: '/regitrasion'),
+    AutoRoute(page: PurchesRoute.page, path: '/purches'),
     homeRoutes,
     RedirectRoute(path: '*', redirectTo: '/'),
   ];

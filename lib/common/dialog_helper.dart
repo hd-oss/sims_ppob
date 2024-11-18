@@ -76,6 +76,7 @@ class DialogHelper {
     required String message,
     required String amount,
     required Status status,
+    Function()? onPressed,
   }) async {
     await showDialog(
       context: context,
@@ -92,16 +93,18 @@ class DialogHelper {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Container(
-                padding: const EdgeInsets.all(8),
+                  padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color:
                           status == Status.SUCCESS ? Colors.green : Colors.red),
                   child: Icon(
-                      status == Status.SUCCESS
-                          ? Icons.done_rounded
-                          : Icons.close_rounded,
-                      color: Colors.white, size: 35,),
+                    status == Status.SUCCESS
+                        ? Icons.done_rounded
+                        : Icons.close_rounded,
+                    color: Colors.white,
+                    size: 35,
+                  ),
                 ),
                 const SizedBox(height: 24),
                 Text(
@@ -123,7 +126,7 @@ class DialogHelper {
                 ),
                 const SizedBox(height: 16),
                 TextButton(
-                  onPressed: () => Navigator.pop(context, false),
+                  onPressed: onPressed ?? () => Navigator.pop(context, false),
                   child: const Text(
                     'Kembali ke Beranda',
                     style: TextStyle(

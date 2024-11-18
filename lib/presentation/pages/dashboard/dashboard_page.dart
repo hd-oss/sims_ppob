@@ -2,9 +2,11 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:sims_ppob/app_router.gr.dart';
 import 'package:sims_ppob/data/models/service_model.dart';
 import 'package:sims_ppob/presentation/controllers/dashboard_controller.dart';
 import 'package:sims_ppob/presentation/providers/dashboard_provider.dart';
+import 'package:sims_ppob/presentation/providers/profile_provider.dart';
 
 @RoutePage()
 class DashboardPage extends ConsumerStatefulWidget {
@@ -155,22 +157,28 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
       itemCount: state.serviceData?.data?.length ?? 0,
       itemBuilder: (context, index) {
         final service = state.serviceData?.data?[index];
-        return _buildServiceItem(service);
+        return _buildServiceItem(service!);
       },
     );
   }
 
-  Widget _buildServiceItem(ServiceModel? service) {
-    final label = cleanServiceName(service?.serviceName);
+  Widget _buildServiceItem(ServiceModel service) {
+    final label = cleanServiceName(service.serviceName);
     return Column(
       children: [
-        Image.network(service?.serviceIcon ?? '',
-            errorBuilder: (_, __, ___) =>
-                Image.asset('assets/icons/$label.png'),
-            loadingBuilder: (_, child, progress) {
-              if (progress == null) return child;
-              return const Center(child: CircularProgressIndicator());
-            }),
+        InkWell(
+          onTap: () => context.router
+              .push(PurchesRoute(serviceModel: service))
+              .then(
+                  (value) => ref.read(dashboardProvider.notifier).getBalance()),
+          child: Image.network(service.serviceIcon ?? '',
+              errorBuilder: (_, __, ___) =>
+                  Image.asset('assets/icons/$label.png'),
+              loadingBuilder: (_, child, progress) {
+                if (progress == null) return child;
+                return const Center(child: CircularProgressIndicator());
+              }),
+        ),
         Text(label,
             style: const TextStyle(fontSize: 12),
             overflow: TextOverflow.ellipsis),
