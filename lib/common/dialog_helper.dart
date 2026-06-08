@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:sims_ppob/common/result_state.dart';
 
 class DialogHelper {
   static Future<bool> showConfirmationDialog({
@@ -75,7 +74,7 @@ class DialogHelper {
     required BuildContext context,
     required String message,
     required String amount,
-    required Status status,
+    required bool isSuccess,
     Function()? onPressed,
   }) async {
     await showDialog(
@@ -96,12 +95,9 @@ class DialogHelper {
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color:
-                          status == Status.SUCCESS ? Colors.green : Colors.red),
+                      color: isSuccess ? Colors.green : Colors.red),
                   child: Icon(
-                    status == Status.SUCCESS
-                        ? Icons.done_rounded
-                        : Icons.close_rounded,
+                    isSuccess ? Icons.done_rounded : Icons.close_rounded,
                     color: Colors.white,
                     size: 35,
                   ),
@@ -121,7 +117,7 @@ class DialogHelper {
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  status == Status.SUCCESS ? 'berhasil!' : 'gagal!',
+                  isSuccess ? 'berhasil!' : 'gagal!',
                   style: const TextStyle(fontSize: 14),
                 ),
                 const SizedBox(height: 16),

@@ -1,14 +1,11 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../common/dialog_helper.dart';
-import '../../../common/result_state.dart';
 import '../../../data/models/service_model.dart';
 import '../../controllers/purches_controller.dart';
-import '../../providers/purches_provider.dart';
 
 @RoutePage()
 class PurchesPage extends ConsumerStatefulWidget {
@@ -21,33 +18,43 @@ class PurchesPage extends ConsumerStatefulWidget {
 
 class _PurchesPageState extends ConsumerState<PurchesPage> {
   @override
-  void initState() {
-    // TODO: implement initState
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback(
-        (_) => ref.read(purchesProvider.notifier).initState());
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final state = ref.watch(purchesProvider);
+    final balanceState = ref.watch(purchesBalanceProvider);
+    final purchesState = ref.watch(purchesActionProvider);
 
-    ref.listen(purchesProvider, (previous, next) {
-      if (previous?.purchesResult != next.purchesResult &&
-          next.purchesResult?.status != Status.LOADING) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          DialogHelper.showResulDialog(
-            context: context,
-            message: 'Permayaran ${widget.serviceModel.serviceName} sebesar',
-            amount: formatNumber(widget.serviceModel.serviceTariff) ?? '0',
-            status: next.purchesResult!.status,
-            onPressed: () {
-              Navigator.pop(context);
-              Navigator.pop(context);
-            },
-          );
-        });
-      }
+    ref.listen<AsyncValue<void>>(purchesActionProvider, (previous, next) {
+      next.whenOrNull(
+        data: (_) {
+          if (previous is AsyncLoading) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              DialogHelper.showResulDialog(
+                context: context,
+                message: 'Permayaran ${widget.serviceModel.serviceName} sebesar',
+                amount: formatNumber(widget.serviceModel.serviceTariff) ?? '0',
+                isSuccess: true,
+                onPressed: () {
+                  Navigator.pop(context);
+                  Navigator.pop(context);
+                },
+              );
+            });
+          }
+        },
+        error: (error, _) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            DialogHelper.showResulDialog(
+              context: context,
+              message: 'Permayaran ${widget.serviceModel.serviceName} sebesar',
+              amount: formatNumber(widget.serviceModel.serviceTariff) ?? '0',
+              isSuccess: false,
+              onPressed: () {
+                Navigator.pop(context);
+                Navigator.pop(context);
+              },
+            );
+          });
+        },
+      );
     });
 
     return Scaffold(
@@ -61,7 +68,7 @@ class _PurchesPageState extends ConsumerState<PurchesPage> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            _buildBalanceCard(state),
+            _buildBalanceCard(balanceState),
             const Spacer(flex: 1),
             const Align(
               alignment: Alignment.centerLeft,
@@ -86,7 +93,7 @@ class _PurchesPageState extends ConsumerState<PurchesPage> {
             _buildPurchesInput(
                 (widget.serviceModel.serviceTariff ?? 0).toString()),
             const Spacer(flex: 4),
-            _buildPurchesButton(ref),
+            _buildPurchesButton(purchesState),
             const Spacer(flex: 2),
           ],
         ),
@@ -94,7 +101,7 @@ class _PurchesPageState extends ConsumerState<PurchesPage> {
     );
   }
 
-  Widget _buildBalanceCard(PurchesState state) {
+  Widget _buildBalanceCard(AsyncValue<String> balanceState) {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
@@ -112,19 +119,34 @@ class _PurchesPageState extends ConsumerState<PurchesPage> {
             style: TextStyle(fontSize: 18, color: Colors.white),
           ),
           const SizedBox(height: 16),
-          Text.rich(
-            TextSpan(
-              text: 'Rp ',
-              style: const TextStyle(fontSize: 32, color: Colors.white),
-              children: [
-                TextSpan(
-                  text: formatNumber(state.balanceData?.data),
-                  style: const TextStyle(
-                      fontSize: 36,
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold),
-                ),
-              ],
+          balanceState.when(
+            data: (balance) => Text.rich(
+              TextSpan(
+                text: 'Rp ',
+                style: const TextStyle(fontSize: 32, color: Colors.white),
+                children: [
+                  TextSpan(
+                    text: formatNumber(balance),
+                    style: const TextStyle(
+                        fontSize: 36,
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+            ),
+            loading: () => const Padding(
+              padding: EdgeInsets.symmetric(vertical: 8),
+              child: SizedBox(
+                height: 32,
+                width: 32,
+                child: CircularProgressIndicator(
+                    color: Colors.white, strokeWidth: 3),
+              ),
+            ),
+            error: (error, _) => const Text(
+              'Gagal memuat saldo',
+              style: TextStyle(fontSize: 20, color: Colors.white),
             ),
           ),
         ],
@@ -144,18 +166,23 @@ class _PurchesPageState extends ConsumerState<PurchesPage> {
         autovalidateMode: AutovalidateMode.onUserInteraction);
   }
 
-  Widget _buildPurchesButton(WidgetRef ref) {
+  Widget _buildPurchesButton(AsyncValue<void> purchesState) {
+    if (purchesState.isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
     return ElevatedButton(
       onPressed: () => DialogHelper.showConfirmationDialog(
               context: context,
               message: 'Beli ${widget.serviceModel.serviceName} senilai',
               amount: formatNumber(widget.serviceModel.serviceTariff) ?? '0',
               confirmText: 'Ya, lanjutkan Bayar')
-          .then((next) => next
-              ? ref
-                  .read(purchesProvider.notifier)
-                  .purchesEvent(widget.serviceModel.serviceCode!)
-              : null),
+          .then((confirmed) {
+        if (confirmed) {
+          ref
+              .read(purchesActionProvider.notifier)
+              .purches(widget.serviceModel.serviceCode!);
+        }
+      }),
       child: const Text('Bayar'),
     );
   }
