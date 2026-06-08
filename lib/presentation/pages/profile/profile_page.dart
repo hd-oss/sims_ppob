@@ -1,18 +1,16 @@
 import 'dart:io';
 
 import 'package:auto_route/auto_route.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 
-import '../../../common/result_state.dart';
 import '../../../common/snackbar_helper.dart';
 import '../../../common/validation_helper.dart';
 import '../../../data/models/user_model.dart';
 import '../../../app_router.gr.dart';
+import '../../../di/usecase_providers.dart';
 import '../../controllers/profile_controller.dart';
-import '../../providers/profile_provider.dart';
 
 @RoutePage()
 class ProfilePage extends ConsumerStatefulWidget {
@@ -23,60 +21,75 @@ class ProfilePage extends ConsumerStatefulWidget {
 }
 
 class _ProfilePageState extends ConsumerState<ProfilePage> {
+  final _formKey = GlobalKey<FormState>();
   final TextEditingController firstNameController = TextEditingController();
   final TextEditingController lastNameController = TextEditingController();
 
   @override
-  void initState() {
-    super.initState();
-
-    // addPostFrameCallbackOnce(() {
-    //   final profileState = ref.read(profileProvider);
-    //   if (profileState.userData == null) {
-
-    //   }
-    // });
-  }
-
-  void addPostFrameCallbackOnce(VoidCallback callback) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        callback();
-      }
-    });
+  void dispose() {
+    firstNameController.dispose();
+    lastNameController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final profileState = ref.watch(profileProvider);
-    final _formKey = GlobalKey<FormState>();
+    final profileState = ref.watch(profileControllerProvider);
+    final isEdit = ref.watch(profileUiProvider);
+    final actionState = ref.watch(profileActionProvider);
 
-    ref.listen<ProfileState>(profileProvider, (previous, next) {
-      addPostFrameCallbackOnce(() {
-        if (previous?.userData != next.userData &&
-            next.userData?.status != Status.LOADING &&
-            ((previous?.isEditEvent ?? false) ||
-                (previous?.isEditImage ?? false))) {
-          SnackbarHelper.showSnackBar(
-              context,
-              next.userData?.status == Status.SUCCESS
-                  ? 'Berhasil edit profile'
-                  : next.userData?.message ?? 'Gagal edit profile',
-              next.userData?.status == Status.SUCCESS
-                  ? Colors.green
-                  : Colors.red);
-        }
-      });
+    // Side-effect: snackbar saat aksi edit profil/foto selesai (sukses/gagal).
+    ref.listen<AsyncValue<void>>(profileActionProvider, (previous, next) {
+      next.whenOrNull(
+        data: (_) {
+          if (previous is AsyncLoading) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              SnackbarHelper.showSnackBar(
+                  context, 'Berhasil edit profile', Colors.green);
+            });
+          }
+        },
+        error: (error, _) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            SnackbarHelper.showSnackBar(context, error.toString(), Colors.red);
+          });
+        },
+      );
     });
 
-    if (profileState.userData?.status == Status.LOADING) {
-      return const Center(child: CircularProgressIndicator());
+    return profileState.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (error, _) => _buildError(error),
+      data: (user) => _buildContent(user, isEdit, actionState),
+    );
+  }
+
+  Widget _buildError(Object error) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(error.toString(), textAlign: TextAlign.center),
+            const SizedBox(height: 16),
+            OutlinedButton(
+              onPressed: () => ref.invalidate(profileControllerProvider),
+              child: const Text('Coba Lagi'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildContent(UserModel data, bool isEdit, AsyncValue<void> actionState) {
+    // Sinkronkan field hanya saat tidak dalam mode edit agar tidak menimpa
+    // input pengguna selama mengedit.
+    if (!isEdit) {
+      firstNameController.text = data.firstName ?? '';
+      lastNameController.text = data.lastName ?? '';
     }
-
-    final data = profileState.userData?.data;
-
-    firstNameController.text = data?.firstName ?? '';
-    lastNameController.text = data?.lastName ?? '';
 
     return Center(
       child: SingleChildScrollView(
@@ -85,11 +98,11 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
           key: _formKey,
           child: Column(
             children: [
-              _buildProfileImage(data?.profileImage),
+              _buildProfileImage(data.profileImage),
               const SizedBox(height: 16),
               _buildUserName(data),
               const SizedBox(height: 24),
-              _buildFormField('Email', data?.email,
+              _buildFormField('Email', data.email,
                   readOnly: true,
                   prefixIcon: Padding(
                     padding: const EdgeInsets.all(14.0),
@@ -99,23 +112,22 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
               _buildFormField(
                 'Nama Depan',
                 firstNameController,
-                isEditable: profileState.isEditEvent,
-                readOnly: !profileState.isEditEvent,
+                isEditable: isEdit,
+                readOnly: !isEdit,
                 prefixIcon: const Icon(Icons.person_outline_rounded),
               ),
               const SizedBox(height: 24),
               _buildFormField(
                 'Nama Belakang',
                 lastNameController,
-                isEditable: profileState.isEditEvent,
-                readOnly: !profileState.isEditEvent,
+                isEditable: isEdit,
+                readOnly: !isEdit,
                 prefixIcon: const Icon(Icons.person_outline_rounded),
               ),
               const SizedBox(height: 24),
-              _buildActionButton(
-                  profileState.isEditEvent, _formKey.currentState?.validate()),
+              _buildActionButton(isEdit, actionState),
               const SizedBox(height: 24),
-              _buildLogoutButton(context, profileState.isEditEvent),
+              _buildLogoutButton(context, isEdit),
             ],
           ),
         ),
@@ -151,7 +163,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
           right: 5,
           child: IconButton.outlined(
             onPressed: () => _imagePicker().then((value) => value != null
-                ? ref.read(profileProvider.notifier).editPicture(file: value)
+                ? ref.read(profileActionProvider.notifier).editImage(value)
                 : null),
             icon: const Icon(Icons.edit_rounded),
             style: IconButton.styleFrom(backgroundColor: Colors.white),
@@ -238,20 +250,29 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
         : null);
   }
 
-  Widget _buildActionButton(bool isEdit, bool? isValidate) {
+  Widget _buildActionButton(bool isEdit, AsyncValue<void> actionState) {
+    if (actionState.isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
     return OutlinedButton(
       style: OutlinedButton.styleFrom(
         backgroundColor: !isEdit ? Colors.red : Colors.white,
         foregroundColor: isEdit ? Colors.red : Colors.white,
       ),
-      onPressed: () => isEdit
-          ? ref
-              .read(profileProvider.notifier)
-              .editProfile(
-                  firstName: firstNameController.text,
-                  lastName: lastNameController.text)
-              .then((value) => ref.read(profileProvider.notifier).editEvent())
-          : ref.read(profileProvider.notifier).editEvent(),
+      onPressed: () async {
+        if (!isEdit) {
+          ref.read(profileUiProvider.notifier).toggleEdit();
+          return;
+        }
+        if (_formKey.currentState?.validate() ?? false) {
+          await ref.read(profileActionProvider.notifier).editProfile(
+                firstName: firstNameController.text,
+                lastName: lastNameController.text,
+              );
+          ref.read(profileUiProvider.notifier).toggleEdit();
+        }
+      },
       child: Text(!isEdit ? 'Edit Profile' : 'Simpan'),
     );
   }
@@ -263,7 +284,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
         foregroundColor: !isEdit ? Colors.red : Colors.white,
       ),
       onPressed: () async {
-        await ref.read(profileProvider.notifier).logout();
+        await ref.read(authUseCaseProvider).logout();
         if (!context.mounted) return;
         context.router
             .pushAndPopUntil(const LoginRoute(), predicate: (_) => false);

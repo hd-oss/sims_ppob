@@ -1,98 +1,87 @@
+import 'dart:async';
 import 'dart:io';
 
-import 'package:flutter_riverpod/legacy.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../../common/result_state.dart';
+import '../../common/async_value_x.dart';
 import '../../data/models/user_model.dart';
-import '../../domain/usecases/auth_usecase.dart';
-import '../../domain/usecases/profile_usecase.dart';
+import '../../di/usecase_providers.dart';
 
-class ProfileState {
-  final ResultState<UserModel>? userData;
-  final bool isEditEvent;
-  final bool isEditImage;
+part 'profile_controller.g.dart';
 
-  ProfileState({
-    this.userData,
-    this.isEditEvent = false,
-    this.isEditImage = false,
-  });
+/// Notifier state UI lokal untuk halaman profile.
+///
+/// Menyimpan flag `isEditEvent` (mode edit aktif/tidak) dengan nilai default
+/// `false`.
+@riverpod
+class ProfileUi extends _$ProfileUi {
+  @override
+  bool build() => false; // isEditEvent default false
 
-  ProfileState copyWith({
-    ResultState<UserModel>? userData,
-    bool? isEditEvent,
-    bool? isEditImage,
-  }) {
-    return ProfileState(
-      userData: userData ?? this.userData,
-      isEditEvent: isEditEvent ?? this.isEditEvent,
-      isEditImage: isEditImage ?? this.isEditImage,
-    );
+  /// Membalik nilai `isEditEvent` (involutif: dua kali toggle kembali semula).
+  void toggleEdit() => state = !state;
+
+  /// Mengembalikan `isEditEvent` ke keadaan awal (`false`).
+  void reset() => state = false;
+}
+
+/// AsyncNotifier untuk profil pengguna.
+///
+/// `build` melakukan fetch profil awal. Profil dapat di-refresh dengan
+/// `ref.invalidate(profileControllerProvider)` setelah edit profil/foto.
+@riverpod
+class ProfileController extends _$ProfileController {
+  @override
+  FutureOr<UserModel> build() async {
+    final result = await ref.watch(profileUseCaseProvider).getProfile();
+    return unwrapEither(result);
   }
 }
 
-class ProfileController extends StateNotifier<ProfileState> {
-  final ProfileUseCase profileUseCase;
-  final AuthUseCase authUseCase;
+/// AsyncNotifier untuk aksi update profil dan upload foto.
+///
+/// `build` bersifat idle (tidak melakukan fetch saat inisialisasi). Aksi
+/// [editProfile] dan [editImage] mengekspos keadaan loading, lalu data/error
+/// melalui `AsyncValue`. Setelah aksi berhasil, profil di-refresh melalui
+/// invalidasi `profileControllerProvider`.
+@riverpod
+class ProfileAction extends _$ProfileAction {
+  @override
+  FutureOr<void> build() {} // idle; tidak fetch saat init
 
-  ProfileController(this.profileUseCase, this.authUseCase)
-      : super(ProfileState());
-
-  Future<void> initState() async {
-    state = ProfileState(userData: ResultState.loading());
-
-    try {
-      final result = await profileUseCase.getProfile();
-
-      state = state.copyWith(userData: result);
-    } catch (e) {
-      state = state.copyWith(userData: ResultState.error(e.toString()));
-    }
-  }
-
+  /// Memperbarui nama depan/belakang profil. Hasil `Either` dari usecase
+  /// dikonversi ke `AsyncValue` melalui `unwrapEither` di dalam
+  /// `AsyncValue.guard`. Saat berhasil, profil di-refresh.
   Future<void> editProfile(
       {required String firstName, required String lastName}) async {
-    state = state.copyWith(userData: ResultState.loading(state.userData?.data));
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(() async {
+      if (firstName.isEmpty || lastName.isEmpty) {
+        throw AppFailure('Lengkapi data');
+      }
+      final result = await ref
+          .read(profileUseCaseProvider)
+          .editProfile(firstName, lastName);
+      unwrapEither(result);
+    });
 
-    if (firstName.isEmpty || lastName.isEmpty) {
-      state = state.copyWith(userData: ResultState.error('Lengkapi data'));
-      return;
-    }
-
-    try {
-      final result = await profileUseCase.editProfile(firstName, lastName,
-          currentData: state.userData?.data);
-
-      state = state.copyWith(userData: result);
-    } catch (e) {
-      state = state.copyWith(
-          userData: ResultState.error(e.toString(), state.userData?.data));
+    if (!state.hasError) {
+      ref.invalidate(profileControllerProvider);
     }
   }
 
-  Future<void> editPicture({required File file}) async {
-    state = state.copyWith(
-        userData: ResultState.loading(state.userData?.data),
-        isEditImage: !state.isEditImage);
+  /// Mengunggah/memperbarui foto profil dari [file]. Hasil `Either` dari
+  /// usecase dikonversi ke `AsyncValue` melalui `unwrapEither` di dalam
+  /// `AsyncValue.guard`. Saat berhasil, profil di-refresh.
+  Future<void> editImage(File file) async {
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(() async {
+      final result = await ref.read(profileUseCaseProvider).editImage(file);
+      unwrapEither(result);
+    });
 
-    try {
-      final result = await profileUseCase.editImage(file,
-          currentData: state.userData?.data);
-
-      state = state.copyWith(
-        userData: result,
-        isEditImage: !state.isEditImage,
-      );
-    } catch (e) {
-      state = state.copyWith(
-          userData: ResultState.error(e.toString(), state.userData?.data),
-          isEditImage: !state.isEditImage);
+    if (!state.hasError) {
+      ref.invalidate(profileControllerProvider);
     }
   }
-
-  void editEvent() => state = state.copyWith(isEditEvent: !state.isEditEvent);
-
-  void resetState() => state = ProfileState();
-
-  Future<void> logout() => authUseCase.logout();
 }

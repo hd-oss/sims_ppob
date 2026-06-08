@@ -1,12 +1,8 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:sims_ppob/presentation/controllers/dashboard_controller.dart';
 import 'package:sims_ppob/presentation/controllers/profile_controller.dart';
-import 'package:sims_ppob/presentation/controllers/topup_controller.dart';
-import 'package:sims_ppob/presentation/controllers/transaction_controller.dart';
 import 'package:sims_ppob/presentation/providers/dashboard_provider.dart';
-import 'package:sims_ppob/presentation/providers/profile_provider.dart';
 import 'package:sims_ppob/presentation/providers/topup_provider.dart';
 import 'package:sims_ppob/presentation/providers/transaction_provider.dart';
 
@@ -41,30 +37,23 @@ class _HomePageState extends ConsumerState<HomePage> {
         builder: (context, child) {
           final activeIndex = context.tabsRouter.activeIndex;
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            final provider = [
-              ref.read(dashboardProvider.notifier),
-              ref.read(topupProvider.notifier),
-              ref.read(transactionProvider.notifier),
-              ref.read(profileProvider.notifier)
-            ][activeIndex];
             if (currentPage == activeIndex) return;
             switch (context.tabsRouter.activeIndex) {
               case 0:
-                provider as DashboardController;
-                provider.initState();
+                ref.read(dashboardProvider.notifier).initState();
                 break;
               case 1:
-                provider as TopupController;
-                provider.initState();
+                ref.read(topupProvider.notifier).initState();
                 break;
               case 2:
-                provider as TransactionController;
-                provider.initState();
-                provider.getHistory();
+                final transaction = ref.read(transactionProvider.notifier);
+                transaction.initState();
+                transaction.getHistory();
                 break;
               case 3:
-                provider as ProfileController;
-                provider.initState();
+                // Profil melakukan fetch otomatis pada `build()`; segarkan
+                // data saat tab dibuka kembali.
+                ref.invalidate(profileControllerProvider);
                 break;
               default:
             }
