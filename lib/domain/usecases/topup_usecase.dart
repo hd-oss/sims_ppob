@@ -1,4 +1,5 @@
-import '../../common/result_state.dart';
+import 'package:dartz/dartz.dart';
+
 import '../repositories/topup_repository.dart';
 
 class TopupUseCase {
@@ -6,19 +7,24 @@ class TopupUseCase {
 
   TopupUseCase(this.topupRepository);
 
-  Future<ResultState<String>> getBalance() async {
-    final result = await topupRepository.getBalance();
-    return result.fold(
-      (message) => ResultState.error(message),
-      (data) => ResultState.success(data),
-    );
+  /// Mengambil saldo terkini.
+  ///
+  /// Meneruskan hasil [Either] dari repository apa adanya. Konversi ke
+  /// `AsyncValue` dilakukan di lapisan Notifier melalui `unwrapEither`.
+  Future<Either<String, String?>> getBalance() async {
+    return await topupRepository.getBalance();
   }
 
-  Future<ResultState<String>> topupEvent(String amount) async {
+  /// Melakukan top up sejumlah [amount].
+  ///
+  /// Mengembalikan [Either] dengan [Left] berisi pesan kesalahan saat gagal,
+  /// dan [Right] berisi `amount` saat berhasil. Konversi ke `AsyncValue`
+  /// dilakukan di lapisan Notifier melalui `unwrapEither`.
+  Future<Either<String, String>> topupEvent(String amount) async {
     final result = await topupRepository.topupEvent(amount);
     return result.fold(
-      (message) => ResultState.error(message, amount),
-      (data) => ResultState.success(amount),
+      (message) => Left(message),
+      (_) => Right(amount),
     );
   }
 }

@@ -5,39 +5,87 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../common/dialog_helper.dart';
-import '../../../common/result_state.dart';
+import '../../../common/snackbar_helper.dart';
 import '../../controllers/topup_controller.dart';
-import '../../providers/topup_provider.dart';
 
 @RoutePage()
-class TopupPage extends ConsumerWidget {
+class TopupPage extends ConsumerStatefulWidget {
   const TopupPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final TextEditingController controller = TextEditingController();
-    final amountTopup = ValueNotifier<String>('');
-    final state = ref.watch(topupProvider);
-    final amountOptions = [10000, 20000, 50000, 100000, 250000, 500000];
+  ConsumerState<TopupPage> createState() => _TopupPageState();
+}
 
-    ref.listen(topupProvider, (previous, next) {
-      if (previous?.topupResult != next.topupResult &&
-          next.topupResult?.status != Status.LOADING) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          DialogHelper.showResulDialog(
-              context: context,
-              message: 'Top Up sebesar',
-              amount: next.topupResult?.data ?? '0',
-              status: next.topupResult!.status);
-        });
+class _TopupPageState extends ConsumerState<TopupPage> {
+  final TextEditingController controller = TextEditingController();
+  final ValueNotifier<String> amountTopup = ValueNotifier<String>('');
+  final List<int> amountOptions = const [
+    10000,
+    20000,
+    50000,
+    100000,
+    250000,
+    500000
+  ];
+
+  // Menyimpan nominal top up terakhir agar dapat ditampilkan pada
+  // notifikasi keberhasilan (aksi top up bertipe `AsyncValue<void>`).
+  String _lastAmount = '0';
+
+  @override
+  void dispose() {
+    controller.dispose();
+    amountTopup.dispose();
+    super.dispose();
+  }
+
+  void _onTopup(String value) {
+    DialogHelper.showConfirmationDialog(
+      context: context,
+      message: 'Anda yakin untuk Top Up sebesar',
+      amount: formatNumber(value) ?? '0',
+      confirmText: 'Ya, lanjutkan Top Up',
+    ).then((confirmed) {
+      if (confirmed) {
+        _lastAmount = value;
+        ref.read(topupActionProvider.notifier).topup(value);
       }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final balanceState = ref.watch(topupBalanceProvider);
+    final topupState = ref.watch(topupActionProvider);
+
+    ref.listen<AsyncValue<void>>(topupActionProvider, (previous, next) {
+      next.whenOrNull(
+        data: (_) {
+          if (previous is AsyncLoading) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              SnackbarHelper.showSnackBar(
+                context,
+                'Top Up sebesar Rp ${formatNumber(_lastAmount) ?? '0'} berhasil',
+                Colors.green,
+              );
+              controller.clear();
+              amountTopup.value = '';
+            });
+          }
+        },
+        error: (error, _) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            SnackbarHelper.showSnackBar(context, error.toString(), Colors.red);
+          });
+        },
+      );
     });
 
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Column(
         children: [
-          _buildBalanceCard(state),
+          _buildBalanceCard(balanceState),
           const Spacer(),
           _buildTopupTitle(),
           const Spacer(),
@@ -45,13 +93,13 @@ class TopupPage extends ConsumerWidget {
           const Spacer(),
           _buildAmountOptionsGrid(amountOptions, controller, amountTopup),
           const Spacer(),
-          _buildTopupButton(amountTopup, ref),
+          _buildTopupButton(topupState),
         ],
       ),
     );
   }
 
-  Widget _buildBalanceCard(TopupState state) {
+  Widget _buildBalanceCard(AsyncValue<String> balanceState) {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
@@ -69,19 +117,34 @@ class TopupPage extends ConsumerWidget {
             style: TextStyle(fontSize: 18, color: Colors.white),
           ),
           const SizedBox(height: 16),
-          Text.rich(
-            TextSpan(
-              text: 'Rp ',
-              style: const TextStyle(fontSize: 32, color: Colors.white),
-              children: [
-                TextSpan(
-                  text: formatNumber(state.balanceData?.data),
-                  style: const TextStyle(
-                      fontSize: 36,
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold),
-                ),
-              ],
+          balanceState.when(
+            data: (balance) => Text.rich(
+              TextSpan(
+                text: 'Rp ',
+                style: const TextStyle(fontSize: 32, color: Colors.white),
+                children: [
+                  TextSpan(
+                    text: formatNumber(balance),
+                    style: const TextStyle(
+                        fontSize: 36,
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+            ),
+            loading: () => const Padding(
+              padding: EdgeInsets.symmetric(vertical: 8),
+              child: SizedBox(
+                height: 32,
+                width: 32,
+                child: CircularProgressIndicator(
+                    color: Colors.white, strokeWidth: 3),
+              ),
+            ),
+            error: (error, _) => const Text(
+              'Gagal memuat saldo',
+              style: TextStyle(fontSize: 20, color: Colors.white),
             ),
           ),
         ],
@@ -170,24 +233,18 @@ class TopupPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildTopupButton(ValueNotifier<String> amountTopup, WidgetRef ref) {
+  Widget _buildTopupButton(AsyncValue<void> topupState) {
     return ValueListenableBuilder<String>(
       valueListenable: amountTopup,
       builder: (context, amount, child) {
-        final value = amount.replaceAll('.','');
+        if (topupState.isLoading) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        final value = amount.replaceAll('.', '');
+        final number = int.tryParse(value) ?? 0;
+        final isValid = value.isNotEmpty && number >= 10000 && number <= 1000000;
         return ElevatedButton(
-          onPressed: value.isNotEmpty &&
-                  int.parse(value) >= 10000 &&
-                  int.parse(value) <= 1000000
-              ? () => DialogHelper.showConfirmationDialog(
-                      context: context,
-                      message: 'Anda yakin untuk Top Up sebesar',
-                      amount: formatNumber(value) ?? '0',
-                      confirmText: 'Ya, lanjutkan Top Up')
-                  .then((next) => next
-                      ? ref.read(topupProvider.notifier).topupEvent(value)
-                      : null)
-              : null,
+          onPressed: isValid ? () => _onTopup(value) : null,
           child: const Text('Top Up'),
         );
       },
