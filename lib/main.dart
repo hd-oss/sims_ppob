@@ -2,12 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'app_router.dart';
-import 'injection_container.dart' as di;
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   final rootRouter = RootRouter();
-  di.init();
 
   runApp(
     ProviderScope(

@@ -1,19 +1,19 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sims_ppob/app_router.gr.dart';
 
-import '../../common/secure_storage_helper.dart';
-import '../../injection_container.dart';
+import '../../di/core_providers.dart';
 
 @RoutePage()
-class SplashPage extends StatefulWidget {
+class SplashPage extends ConsumerStatefulWidget {
   const SplashPage({super.key});
 
   @override
-  State<SplashPage> createState() => _SplashPageState();
+  ConsumerState<SplashPage> createState() => _SplashPageState();
 }
 
-class _SplashPageState extends State<SplashPage> {
+class _SplashPageState extends ConsumerState<SplashPage> {
   @override
   void initState() {
     super.initState();
@@ -23,7 +23,7 @@ class _SplashPageState extends State<SplashPage> {
   Future<void> _checkToken() async {
     await Future.delayed(const Duration(seconds: 2));
 
-    String? token = await sl<SecureStorageHelper>().readToken();
+    String? token = await ref.read(secureStorageProvider).readToken();
 
     if (!mounted) return;
     token != null && token.isNotEmpty

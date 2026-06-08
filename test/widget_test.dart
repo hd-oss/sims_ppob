@@ -9,15 +9,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:sims_ppob/app_router.dart';
-import 'package:sims_ppob/injection_container.dart' as di;
 
 void main() {
   testWidgets('App root builds without throwing', (WidgetTester tester) async {
-    // Inisialisasi dependency injection, reset dulu agar aman dari
-    // registrasi ganda saat test dijalankan berulang.
-    await di.sl.reset();
-    di.init();
-
     final rootRouter = RootRouter();
 
     await tester.pumpWidget(

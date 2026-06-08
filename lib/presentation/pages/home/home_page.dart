@@ -1,10 +1,10 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:sims_ppob/presentation/controllers/dashboard_controller.dart';
 import 'package:sims_ppob/presentation/controllers/profile_controller.dart';
+import 'package:sims_ppob/presentation/controllers/topup_controller.dart';
 import 'package:sims_ppob/presentation/controllers/transaction_controller.dart';
-import 'package:sims_ppob/presentation/providers/dashboard_provider.dart';
-import 'package:sims_ppob/presentation/providers/topup_provider.dart';
 
 import '../../../app_router.gr.dart';
 
@@ -40,10 +40,18 @@ class _HomePageState extends ConsumerState<HomePage> {
             if (currentPage == activeIndex) return;
             switch (context.tabsRouter.activeIndex) {
               case 0:
-                ref.read(dashboardProvider.notifier).initState();
+                // Dashboard: UserController, BalanceController, BannerController,
+                // dan ServiceController melakukan fetch otomatis pada `build()`;
+                // segarkan data saat tab dibuka kembali.
+                ref.invalidate(userControllerProvider);
+                ref.invalidate(balanceControllerProvider);
+                ref.invalidate(bannerControllerProvider);
+                ref.invalidate(serviceControllerProvider);
                 break;
               case 1:
-                ref.read(topupProvider.notifier).initState();
+                // Top Up: TopupBalance melakukan fetch otomatis pada `build()`;
+                // segarkan data saat tab dibuka kembali.
+                ref.invalidate(topupBalanceProvider);
                 break;
               case 2:
                 // Transaction: HistoryController dan TransactionBalance

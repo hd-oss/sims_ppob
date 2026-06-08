@@ -1,12 +1,9 @@
 import 'dart:async';
 
-import 'package:flutter_riverpod/legacy.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../common/async_value_x.dart';
-import '../../common/result_state.dart';
 import '../../di/usecase_providers.dart';
-import '../../domain/usecases/auth_usecase.dart';
 
 part 'login_controller.g.dart';
 
@@ -43,50 +40,4 @@ class LoginAuth extends _$LoginAuth {
       return unwrapEither(result);
     });
   }
-}
-
-// ---------------------------------------------------------------------------
-// Artefak lama (StateNotifier) dipertahankan sementara agar aplikasi tetap
-// dapat dikompilasi selama transisi. Akan dihapus pada langkah pembersihan
-// (lihat task 4.2 / 14).
-// ---------------------------------------------------------------------------
-
-class LoginState {
-  final bool isHide;
-  final ResultState<String>? loginResult;
-
-  LoginState({this.isHide = true, this.loginResult});
-
-  LoginState copyWith({bool? isHide, ResultState<String>? loginResult}) {
-    return LoginState(
-        isHide: isHide ?? this.isHide,
-        loginResult: loginResult ?? this.loginResult);
-  }
-}
-
-class LoginController extends StateNotifier<LoginState> {
-  final AuthUseCase loginUseCase;
-
-  LoginController(this.loginUseCase) : super(LoginState());
-
-  Future<void> login(String email, String password) async {
-    state = state.copyWith(loginResult: ResultState.loading());
-
-    try {
-      final result = await loginUseCase.login(email, password);
-
-      state = state.copyWith(
-        loginResult: result.fold(
-          (message) => ResultState.error(message),
-          (data) => ResultState.success(data, data),
-        ),
-      );
-    } catch (e) {
-      state = state.copyWith(loginResult: ResultState.error(e.toString()));
-    }
-  }
-
-  void hidePassword() => state = state.copyWith(isHide: !state.isHide);
-
-  void resetState() => state = LoginState();
 }
