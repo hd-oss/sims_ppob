@@ -2,9 +2,9 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sims_ppob/presentation/controllers/profile_controller.dart';
+import 'package:sims_ppob/presentation/controllers/transaction_controller.dart';
 import 'package:sims_ppob/presentation/providers/dashboard_provider.dart';
 import 'package:sims_ppob/presentation/providers/topup_provider.dart';
-import 'package:sims_ppob/presentation/providers/transaction_provider.dart';
 
 import '../../../app_router.gr.dart';
 
@@ -46,9 +46,11 @@ class _HomePageState extends ConsumerState<HomePage> {
                 ref.read(topupProvider.notifier).initState();
                 break;
               case 2:
-                final transaction = ref.read(transactionProvider.notifier);
-                transaction.initState();
-                transaction.getHistory();
+                // Transaction: HistoryController dan TransactionBalance
+                // melakukan fetch otomatis pada `build()`; segarkan
+                // data saat tab dibuka kembali.
+                ref.invalidate(historyControllerProvider);
+                ref.invalidate(transactionBalanceProvider);
                 break;
               case 3:
                 // Profil melakukan fetch otomatis pada `build()`; segarkan

@@ -1,70 +1,88 @@
-import 'package:flutter_riverpod/legacy.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../../common/result_state.dart';
+import '../../common/async_value_x.dart';
 import '../../data/models/history_model.dart';
-import '../../domain/usecases/history_usecase.dart';
+import '../../di/usecase_providers.dart';
 
-class TransactionState {
-  final ResultState<List<HistoryModel>>? historyData;
-  final ResultState<String>? balanceData;
-  final bool isShowMore;
+part 'transaction_controller.g.dart';
+
+// ===== New codegen-based implementation =====
+
+/// State imutabel untuk pagination
+class PaginationState {
   final int offset;
   final int limit;
+  final bool isShowMore;
 
-  TransactionState({
-    this.historyData,
-    this.balanceData,
+  const PaginationState({
     this.offset = 0,
-    this.isShowMore = false,
     this.limit = 5,
+    this.isShowMore = false,
   });
 
-  TransactionState copyWith(
-      {ResultState<List<HistoryModel>>? historyData,
-      ResultState<String>? balanceData,
-      bool? isShowMore,
-      int? offset,
-      int? limit}) {
-    return TransactionState(
-        balanceData: balanceData ?? this.balanceData,
-        historyData: historyData ?? this.historyData,
-        isShowMore: isShowMore ?? this.isShowMore,
-        limit: limit ?? this.limit,
-        offset: offset ?? this.offset);
+  PaginationState copyWith({
+    int? offset,
+    int? limit,
+    bool? isShowMore,
+  }) {
+    return PaginationState(
+      offset: offset ?? this.offset,
+      limit: limit ?? this.limit,
+      isShowMore: isShowMore ?? this.isShowMore,
+    );
   }
 }
 
-class TransactionController extends StateNotifier<TransactionState> {
-  final HistoryUseCase historyUseCase;
-  TransactionController(this.historyUseCase) : super(TransactionState());
+/// Notifier untuk mengelola state pagination lokal
+@riverpod
+class TransactionPagination extends _$TransactionPagination {
+  @override
+  PaginationState build() => const PaginationState();
 
-  Future<void> initState() async {
-    state = state.copyWith(balanceData: ResultState.loading());
-    try {
-      final result = await historyUseCase.getBalance();
-      state = state.copyWith(balanceData: result);
-    } catch (e) {
-      state = state.copyWith(balanceData: ResultState.error(e.toString()));
-    }
-  }
-
-  Future<void> getHistory() async {
+  /// Menambah offset & limit untuk "tampilkan lebih banyak"
+  void nextPage() {
     state = state.copyWith(
-      historyData: state.isShowMore ? null : ResultState.loading(),
+      offset: state.offset + 5,
+      limit: state.limit + 5,
+      isShowMore: true,
     );
-
-    try {
-      final result = await historyUseCase.getHistory(
-          state.offset, state.limit, state.historyData?.data, state.isShowMore);
-
-      state = state.copyWith(historyData: result);
-    } catch (e) {
-      state = state.copyWith(historyData: ResultState.error(e.toString()));
-    }
   }
 
-  Future<void> showMore() async {
-    state = state.copyWith(limit: state.limit + 5 , offset: state.offset + 5, isShowMore: true);
-    getHistory().then((value) => state = state.copyWith(isShowMore: false));
+  /// Menandai loading lebih banyak selesai
+  void doneLoadingMore() {
+    state = state.copyWith(isShowMore: false);
+  }
+}
+
+/// AsyncNotifier untuk mengelola data riwayat transaksi
+@riverpod
+class HistoryController extends _$HistoryController {
+  @override
+  FutureOr<List<HistoryModel>> build() async {
+    // Watch pagination state untuk otomatis rebuild saat berubah
+    final page = ref.watch(transactionPaginationProvider);
+
+    // Ambil data sebelumnya jika isShowMore untuk akumulasi
+    final previous = page.isShowMore
+        ? (state.hasValue ? state.value : const <HistoryModel>[])
+        : const <HistoryModel>[];
+
+    // Fetch data dari usecase
+    final result = await ref
+        .watch(historyUseCaseProvider)
+        .getHistory(page.offset, page.limit, previous, page.isShowMore);
+
+    // Konversi Either ke nilai/exception untuk AsyncValue
+    return unwrapEither(result);
+  }
+}
+
+/// AsyncNotifier untuk mengelola saldo transaksi
+@riverpod
+class TransactionBalance extends _$TransactionBalance {
+  @override
+  FutureOr<String> build() async {
+    final result = await ref.watch(historyUseCaseProvider).getBalance();
+    return unwrapEither(result);
   }
 }

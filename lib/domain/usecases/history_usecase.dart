@@ -1,6 +1,6 @@
+import 'package:dartz/dartz.dart';
 import 'package:sims_ppob/data/models/history_model.dart';
 
-import '../../common/result_state.dart';
 import '../repositories/history_repository.dart';
 
 class HistoryUseCase {
@@ -8,15 +8,11 @@ class HistoryUseCase {
 
   HistoryUseCase(this.purchesRepository);
 
-  Future<ResultState<String>> getBalance() async {
-    final result = await purchesRepository.getBalance();
-    return result.fold(
-      (message) => ResultState.error(message),
-      (data) => ResultState.success(data),
-    );
+  Future<Either<String, String>> getBalance() async {
+    return await purchesRepository.getBalance();
   }
 
-  Future<ResultState<List<HistoryModel>>> getHistory(
+  Future<Either<String, List<HistoryModel>>> getHistory(
     int offset,
     int limit,
     List<HistoryModel>? curentData,
@@ -25,13 +21,13 @@ class HistoryUseCase {
     final result = await purchesRepository.getHistory(offset, limit);
 
     return result.fold(
-      (message) => ResultState.error(message),
+      (message) => Left(message),
       (data) {
         final List<HistoryModel> dataMarge = [
           if (isShowMore) ...curentData ?? [],
           ...data,
         ];
-        return ResultState.success(dataMarge);
+        return Right(dataMarge);
       },
     );
   }

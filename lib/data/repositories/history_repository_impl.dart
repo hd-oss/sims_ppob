@@ -10,8 +10,13 @@ class HistoryRepositoryImpl implements HistoryRepository {
   HistoryRepositoryImpl({required this.remoteDataSource});
 
   @override
-  Future<Either<String, String?>> getBalance() async {
-    return await remoteDataSource.getBalance();
+  Future<Either<String, String>> getBalance() async {
+    final result = await remoteDataSource.getBalance();
+    // Konversi nullable String? ke non-nullable String dengan fallback '0'
+    return result.fold(
+      (error) => Left(error),
+      (balance) => Right(balance ?? '0'),
+    );
   }
 
   @override

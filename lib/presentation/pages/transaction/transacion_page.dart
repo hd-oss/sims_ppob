@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:sims_ppob/presentation/controllers/transaction_controller.dart';
-import 'package:sims_ppob/presentation/providers/transaction_provider.dart';
 
 @RoutePage()
 class TransactionPage extends ConsumerStatefulWidget {
@@ -17,88 +16,99 @@ class TransactionPage extends ConsumerStatefulWidget {
 class _TransactionPageState extends ConsumerState<TransactionPage> {
   @override
   Widget build(BuildContext context) {
-    final state = ref.watch(transactionProvider);
+    final historyState = ref.watch(historyControllerProvider);
+    final balanceState = ref.watch(transactionBalanceProvider);
+    final paginationState = ref.watch(transactionPaginationProvider);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16.0),
       child: Column(
         children: [
-          _buildBalanceCard(state),
+          _buildBalanceCard(balanceState),
           const SizedBox(height: 40),
           _buildTopupTitle(),
           const SizedBox(height: 24),
-          ListView.separated(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              padding: EdgeInsets.zero,
-              itemBuilder: (context, index) {
-                final data = state.historyData?.data?[index];
-                return Container(
-                    decoration: BoxDecoration(
-                        border: Border.all(color: Colors.black),
-                        borderRadius: BorderRadius.circular(10)),
-                    padding: const EdgeInsets.all(8),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Text.rich(
-                                TextSpan(
-                                  text: data?.transactionType == 'PAYMENT'
-                                      ? '- '
-                                      : '+ ',
-                                  style: TextStyle(
-                                      fontSize: 34,
-                                      color: data?.transactionType == 'PAYMENT'
-                                          ? Colors.red
-                                          : Colors.green,
-                                      fontWeight: FontWeight.bold),
-                                  children: [
-                                    TextSpan(
-                                      text:
-                                          'Rp.${formatNumber(data?.totalAmount)}',
-                                      style: TextStyle(
-                                          fontSize: 24,
-                                          color:
-                                              data?.transactionType == 'PAYMENT'
-                                                  ? Colors.red
-                                                  : Colors.green,
-                                          fontWeight: FontWeight.w600),
-                                    ),
-                                  ],
+          historyState.when(
+            data: (historyData) => ListView.separated(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                padding: EdgeInsets.zero,
+                itemBuilder: (context, index) {
+                  final data = historyData[index];
+                  return Container(
+                      decoration: BoxDecoration(
+                          border: Border.all(color: Colors.black),
+                          borderRadius: BorderRadius.circular(10)),
+                      padding: const EdgeInsets.all(8),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text.rich(
+                                  TextSpan(
+                                    text: data.transactionType == 'PAYMENT'
+                                        ? '- '
+                                        : '+ ',
+                                    style: TextStyle(
+                                        fontSize: 34,
+                                        color: data.transactionType == 'PAYMENT'
+                                            ? Colors.red
+                                            : Colors.green,
+                                        fontWeight: FontWeight.bold),
+                                    children: [
+                                      TextSpan(
+                                        text:
+                                            'Rp.${formatNumber(data.totalAmount)}',
+                                        style: TextStyle(
+                                            fontSize: 24,
+                                            color:
+                                                data.transactionType == 'PAYMENT'
+                                                    ? Colors.red
+                                                    : Colors.green,
+                                            fontWeight: FontWeight.w600),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
-                            ),
-                            Text(
-                              data?.description ?? '',
-                              style: const TextStyle(
-                                  fontSize: 16, fontWeight: FontWeight.w600),
-                            )
-                          ],
-                        ),
-                        Text(
-                          data?.createdOn ?? '',
-                          style: const TextStyle(
-                              color: Colors.grey,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600),
-                        )
-                      ],
-                    ));
-              },
-              separatorBuilder: (_, __) => const SizedBox(
-                    height: 12,
-                  ),
-              itemCount: state.historyData?.data?.length ?? 0),
-              const SizedBox(height: 16),
-          state.isShowMore
+                              Text(
+                                data.description ?? '',
+                                style: const TextStyle(
+                                    fontSize: 16, fontWeight: FontWeight.w600),
+                              )
+                            ],
+                          ),
+                          Text(
+                            data.createdOn ?? '',
+                            style: const TextStyle(
+                                color: Colors.grey,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600),
+                          )
+                        ],
+                      ));
+                },
+                separatorBuilder: (_, __) => const SizedBox(
+                      height: 12,
+                    ),
+                itemCount: historyData.length),
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (error, stack) => Center(
+              child: Text(
+                'Error: $error',
+                style: const TextStyle(color: Colors.red),
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          paginationState.isShowMore
               ? const Center(child: CircularProgressIndicator())
               : TextButton(
                   onPressed: () => ref
-                      .read(transactionProvider.notifier)
-                      .showMore(),
+                      .read(transactionPaginationProvider.notifier)
+                      .nextPage(),
                   child: const Text(
                     'Show More',
                     style: TextStyle(
@@ -111,7 +121,7 @@ class _TransactionPageState extends ConsumerState<TransactionPage> {
     );
   }
 
-  Widget _buildBalanceCard(TransactionState state) {
+  Widget _buildBalanceCard(AsyncValue<String> balanceState) {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
@@ -129,19 +139,26 @@ class _TransactionPageState extends ConsumerState<TransactionPage> {
             style: TextStyle(fontSize: 18, color: Colors.white),
           ),
           const SizedBox(height: 16),
-          Text.rich(
-            TextSpan(
-              text: 'Rp ',
-              style: const TextStyle(fontSize: 32, color: Colors.white),
-              children: [
-                TextSpan(
-                  text: formatNumber(state.balanceData?.data),
-                  style: const TextStyle(
-                      fontSize: 36,
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold),
-                ),
-              ],
+          balanceState.when(
+            data: (balance) => Text.rich(
+              TextSpan(
+                text: 'Rp ',
+                style: const TextStyle(fontSize: 32, color: Colors.white),
+                children: [
+                  TextSpan(
+                    text: formatNumber(balance),
+                    style: const TextStyle(
+                        fontSize: 36,
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+            ),
+            loading: () => const CircularProgressIndicator(color: Colors.white),
+            error: (error, stack) => Text(
+              'Error: $error',
+              style: const TextStyle(color: Colors.white),
             ),
           ),
         ],
