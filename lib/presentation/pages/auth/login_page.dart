@@ -4,11 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app_router.gr.dart';
-import '../../../common/result_state.dart';
 import '../../../common/snackbar_helper.dart';
 import '../../../common/validation_helper.dart';
 import '../../controllers/login_controller.dart';
-import '../../providers/login_provider.dart';
 
 @RoutePage()
 class LoginPage extends ConsumerStatefulWidget {
@@ -25,34 +23,41 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
   @override
   void initState() {
-    WidgetsBinding.instance.addPostFrameCallback(
-        (_) => ref.read(loginProvider.notifier).resetState());
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback(
+        (_) => ref.read(loginUiProvider.notifier).reset());
   }
 
-  void _handleLoginState(BuildContext context, LoginState loginState) {
-    final result = loginState.loginResult;
-
-    if (result?.status == Status.SUCCESS) {
-      SnackbarHelper.showSnackBar(
-          context, result?.message ?? 'Login berhasil', Colors.green);
-      context.router
-          .pushAndPopUntil(const HomeRoute(), predicate: (_) => false);
-    } else if (result?.status == Status.ERROR) {
-      SnackbarHelper.showSnackBar(
-          context, result?.message ?? 'Terjadi kesalahan', Colors.red);
-    }
+  @override
+  void dispose() {
+    emailController.dispose();
+    passwordController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final loginState = ref.watch(loginProvider);
+    final isHide = ref.watch(loginUiProvider);
+    final loginState = ref.watch(loginAuthProvider);
 
-    ref.listen<LoginState>(loginProvider, (previous, next) {
-      if (previous?.loginResult != next.loginResult) {
-        WidgetsBinding.instance
-            .addPostFrameCallback((_) => _handleLoginState(context, next));
-      }
+    ref.listen<AsyncValue<void>>(loginAuthProvider, (previous, next) {
+      next.whenOrNull(
+        data: (_) {
+          if (previous is AsyncLoading) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              SnackbarHelper.showSnackBar(
+                  context, 'Login berhasil', Colors.green);
+              context.router
+                  .pushAndPopUntil(const HomeRoute(), predicate: (_) => false);
+            });
+          }
+        },
+        error: (error, _) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            SnackbarHelper.showSnackBar(context, error.toString(), Colors.red);
+          });
+        },
+      );
     });
 
     return Scaffold(
@@ -70,9 +75,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   const SizedBox(height: 48),
                   _buildIntroText(),
                   const SizedBox(height: 48),
-                  _buildFormFields(loginState),
+                  _buildFormFields(isHide),
                   const SizedBox(height: 48),
-                  _buildLoginButton(ref, loginState),
+                  _buildLoginButton(loginState),
                   const SizedBox(height: 24),
                   _buildRegisterLink(context),
                 ],
@@ -108,14 +113,13 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     );
   }
 
-  Widget _buildFormFields(LoginState loginState) {
+  Widget _buildFormFields(bool isHide) {
     return Column(
       children: [
         _buildFormField(
           controller: emailController,
           hintText: 'Masukan email anda',
           icon: 'assets/icons/at.png',
-          loginState: loginState,
           validator: (value) {
             return validateEmail(value) ?? requiredField(value);
           },
@@ -125,15 +129,14 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           controller: passwordController,
           hintText: 'Masukan password anda',
           icon: Icons.lock_outline_rounded,
-          loginState: loginState,
           suffixIcon: InkWell(
-            onTap: () => ref.read(loginProvider.notifier).hidePassword(),
+            onTap: () => ref.read(loginUiProvider.notifier).toggleHide(),
             borderRadius: BorderRadius.circular(100),
-            child: Icon(loginState.isHide
+            child: Icon(isHide
                 ? Icons.visibility_off_rounded
                 : Icons.visibility_rounded),
           ),
-          hide: loginState.isHide,
+          hide: isHide,
           validator: requiredField,
         ),
       ],
@@ -143,7 +146,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   Widget _buildFormField({
     required String hintText,
     required dynamic icon,
-    required LoginState loginState,
     bool hide = false,
     Widget? suffixIcon,
     String? Function(String?)? validator,
@@ -171,13 +173,13 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     );
   }
 
-  Widget _buildLoginButton(WidgetRef ref, LoginState loginState) {
-    return loginState.loginResult?.status == Status.LOADING
+  Widget _buildLoginButton(AsyncValue<void> loginState) {
+    return loginState.isLoading
         ? const CircularProgressIndicator()
         : ElevatedButton(
             onPressed: () => _formKey.currentState?.validate() ?? false
                 ? ref
-                    .read(loginProvider.notifier)
+                    .read(loginAuthProvider.notifier)
                     .login(emailController.text, passwordController.text)
                 : null,
             child: const Text('Masuk'),
