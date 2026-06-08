@@ -1,30 +1,45 @@
-// This is a basic Flutter widget test.
+// Smoke test untuk root aplikasi SIMS-PPOB.
 //
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
+// Test ini merender root widget yang sebenarnya (ProviderScope +
+// MaterialApp.router dengan RootRouter) dan memastikan widget terbangun
+// tanpa melempar error.
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:sims_ppob/main.dart';
+import 'package:sims_ppob/app_router.dart';
+import 'package:sims_ppob/injection_container.dart' as di;
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget( MyApp());
+  testWidgets('App root builds without throwing', (WidgetTester tester) async {
+    // Inisialisasi dependency injection, reset dulu agar aman dari
+    // registrasi ganda saat test dijalankan berulang.
+    await di.sl.reset();
+    di.init();
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    final rootRouter = RootRouter();
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
+    await tester.pumpWidget(
+      ProviderScope(
+        child: MaterialApp.router(
+          title: 'SIMS-PPOB',
+          routerConfig: rootRouter.config(),
+        ),
+      ),
+    );
+
+    // Render frame pertama: pastikan root MaterialApp terbangun.
     await tester.pump();
+    expect(find.byType(MaterialApp), findsWidgets);
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    // SplashPage memulai Timer 2 detik pada initState lalu bernavigasi.
+    // Majukan waktu agar timer terselesaikan sehingga tidak ada timer
+    // yang tertunda saat widget tree dibuang.
+    await tester.pump(const Duration(seconds: 3));
+    await tester.pumpAndSettle();
+
+    // Setelah navigasi, root MaterialApp tetap terbangun tanpa error.
+    expect(find.byType(MaterialApp), findsWidgets);
   });
 }
