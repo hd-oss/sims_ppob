@@ -1,3 +1,4 @@
+// dart format width=80
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
 // **************************************************************************
@@ -25,206 +26,132 @@ import 'package:sims_ppob/presentation/pages/top_up/topup_page.dart' as _i9;
 import 'package:sims_ppob/presentation/pages/transaction/transacion_page.dart'
     as _i10;
 
-abstract class $RootRouter extends _i11.RootStackRouter {
-  $RootRouter({super.navigatorKey});
-
-  @override
-  final Map<String, _i11.PageFactory> pagesMap = {
-    TransactionTab.name: (routeData) {
-      return _i11.AutoRoutePage<dynamic>(
-        routeData: routeData,
-        child: const _i1.ApprovalHistoryTabPage(),
-      );
-    },
-    DashboardRoute.name: (routeData) {
-      return _i11.AutoRoutePage<dynamic>(
-        routeData: routeData,
-        child: const _i2.DashboardPage(),
-      );
-    },
-    DashboardTab.name: (routeData) {
-      return _i11.AutoRoutePage<dynamic>(
-        routeData: routeData,
-        child: const _i1.DashboardTabPage(),
-      );
-    },
-    HomeRoute.name: (routeData) {
-      return _i11.AutoRoutePage<dynamic>(
-        routeData: routeData,
-        child: const _i3.HomePage(),
-      );
-    },
-    LoginRoute.name: (routeData) {
-      return _i11.AutoRoutePage<dynamic>(
-        routeData: routeData,
-        child: const _i4.LoginPage(),
-      );
-    },
-    TopupTab.name: (routeData) {
-      return _i11.AutoRoutePage<dynamic>(
-        routeData: routeData,
-        child: const _i1.NotificationTabPage(),
-      );
-    },
-    ProfileRoute.name: (routeData) {
-      return _i11.AutoRoutePage<dynamic>(
-        routeData: routeData,
-        child: const _i5.ProfilePage(),
-      );
-    },
-    ProfileTab.name: (routeData) {
-      return _i11.AutoRoutePage<dynamic>(
-        routeData: routeData,
-        child: const _i1.ProfileTabPage(),
-      );
-    },
-    PurchesRoute.name: (routeData) {
-      final args = routeData.argsAs<PurchesRouteArgs>();
-      return _i11.AutoRoutePage<dynamic>(
-        routeData: routeData,
-        child: _i6.PurchesPage(
-          args.serviceModel,
-          key: args.key,
-        ),
-      );
-    },
-    RegistrasionRoute.name: (routeData) {
-      return _i11.AutoRoutePage<dynamic>(
-        routeData: routeData,
-        child: const _i7.RegistrasionPage(),
-      );
-    },
-    SplashRoute.name: (routeData) {
-      return _i11.AutoRoutePage<dynamic>(
-        routeData: routeData,
-        child: const _i8.SplashPage(),
-      );
-    },
-    TopupRoute.name: (routeData) {
-      return _i11.AutoRoutePage<dynamic>(
-        routeData: routeData,
-        child: const _i9.TopupPage(),
-      );
-    },
-    TransactionRoute.name: (routeData) {
-      return _i11.AutoRoutePage<dynamic>(
-        routeData: routeData,
-        child: const _i10.TransactionPage(),
-      );
-    },
-  };
-}
-
 /// generated route for
 /// [_i1.ApprovalHistoryTabPage]
 class TransactionTab extends _i11.PageRouteInfo<void> {
   const TransactionTab({List<_i11.PageRouteInfo>? children})
-      : super(
-          TransactionTab.name,
-          initialChildren: children,
-        );
+      : super(TransactionTab.name, initialChildren: children);
 
   static const String name = 'TransactionTab';
 
-  static const _i11.PageInfo<void> page = _i11.PageInfo<void>(name);
+  static _i11.PageInfo page = _i11.PageInfo(
+    name,
+    builder: (data) {
+      return const _i1.ApprovalHistoryTabPage();
+    },
+  );
 }
 
 /// generated route for
 /// [_i2.DashboardPage]
 class DashboardRoute extends _i11.PageRouteInfo<void> {
   const DashboardRoute({List<_i11.PageRouteInfo>? children})
-      : super(
-          DashboardRoute.name,
-          initialChildren: children,
-        );
+      : super(DashboardRoute.name, initialChildren: children);
 
   static const String name = 'DashboardRoute';
 
-  static const _i11.PageInfo<void> page = _i11.PageInfo<void>(name);
+  static _i11.PageInfo page = _i11.PageInfo(
+    name,
+    builder: (data) {
+      return const _i2.DashboardPage();
+    },
+  );
 }
 
 /// generated route for
 /// [_i1.DashboardTabPage]
 class DashboardTab extends _i11.PageRouteInfo<void> {
   const DashboardTab({List<_i11.PageRouteInfo>? children})
-      : super(
-          DashboardTab.name,
-          initialChildren: children,
-        );
+      : super(DashboardTab.name, initialChildren: children);
 
   static const String name = 'DashboardTab';
 
-  static const _i11.PageInfo<void> page = _i11.PageInfo<void>(name);
+  static _i11.PageInfo page = _i11.PageInfo(
+    name,
+    builder: (data) {
+      return const _i1.DashboardTabPage();
+    },
+  );
 }
 
 /// generated route for
 /// [_i3.HomePage]
 class HomeRoute extends _i11.PageRouteInfo<void> {
   const HomeRoute({List<_i11.PageRouteInfo>? children})
-      : super(
-          HomeRoute.name,
-          initialChildren: children,
-        );
+      : super(HomeRoute.name, initialChildren: children);
 
   static const String name = 'HomeRoute';
 
-  static const _i11.PageInfo<void> page = _i11.PageInfo<void>(name);
+  static _i11.PageInfo page = _i11.PageInfo(
+    name,
+    builder: (data) {
+      return const _i3.HomePage();
+    },
+  );
 }
 
 /// generated route for
 /// [_i4.LoginPage]
 class LoginRoute extends _i11.PageRouteInfo<void> {
   const LoginRoute({List<_i11.PageRouteInfo>? children})
-      : super(
-          LoginRoute.name,
-          initialChildren: children,
-        );
+      : super(LoginRoute.name, initialChildren: children);
 
   static const String name = 'LoginRoute';
 
-  static const _i11.PageInfo<void> page = _i11.PageInfo<void>(name);
+  static _i11.PageInfo page = _i11.PageInfo(
+    name,
+    builder: (data) {
+      return const _i4.LoginPage();
+    },
+  );
 }
 
 /// generated route for
 /// [_i1.NotificationTabPage]
 class TopupTab extends _i11.PageRouteInfo<void> {
   const TopupTab({List<_i11.PageRouteInfo>? children})
-      : super(
-          TopupTab.name,
-          initialChildren: children,
-        );
+      : super(TopupTab.name, initialChildren: children);
 
   static const String name = 'TopupTab';
 
-  static const _i11.PageInfo<void> page = _i11.PageInfo<void>(name);
+  static _i11.PageInfo page = _i11.PageInfo(
+    name,
+    builder: (data) {
+      return const _i1.NotificationTabPage();
+    },
+  );
 }
 
 /// generated route for
 /// [_i5.ProfilePage]
 class ProfileRoute extends _i11.PageRouteInfo<void> {
   const ProfileRoute({List<_i11.PageRouteInfo>? children})
-      : super(
-          ProfileRoute.name,
-          initialChildren: children,
-        );
+      : super(ProfileRoute.name, initialChildren: children);
 
   static const String name = 'ProfileRoute';
 
-  static const _i11.PageInfo<void> page = _i11.PageInfo<void>(name);
+  static _i11.PageInfo page = _i11.PageInfo(
+    name,
+    builder: (data) {
+      return const _i5.ProfilePage();
+    },
+  );
 }
 
 /// generated route for
 /// [_i1.ProfileTabPage]
 class ProfileTab extends _i11.PageRouteInfo<void> {
   const ProfileTab({List<_i11.PageRouteInfo>? children})
-      : super(
-          ProfileTab.name,
-          initialChildren: children,
-        );
+      : super(ProfileTab.name, initialChildren: children);
 
   static const String name = 'ProfileTab';
 
-  static const _i11.PageInfo<void> page = _i11.PageInfo<void>(name);
+  static _i11.PageInfo page = _i11.PageInfo(
+    name,
+    builder: (data) {
+      return const _i1.ProfileTabPage();
+    },
+  );
 }
 
 /// generated route for
@@ -236,24 +163,23 @@ class PurchesRoute extends _i11.PageRouteInfo<PurchesRouteArgs> {
     List<_i11.PageRouteInfo>? children,
   }) : super(
           PurchesRoute.name,
-          args: PurchesRouteArgs(
-            serviceModel: serviceModel,
-            key: key,
-          ),
+          args: PurchesRouteArgs(serviceModel: serviceModel, key: key),
           initialChildren: children,
         );
 
   static const String name = 'PurchesRoute';
 
-  static const _i11.PageInfo<PurchesRouteArgs> page =
-      _i11.PageInfo<PurchesRouteArgs>(name);
+  static _i11.PageInfo page = _i11.PageInfo(
+    name,
+    builder: (data) {
+      final args = data.argsAs<PurchesRouteArgs>();
+      return _i6.PurchesPage(args.serviceModel, key: args.key);
+    },
+  );
 }
 
 class PurchesRouteArgs {
-  const PurchesRouteArgs({
-    required this.serviceModel,
-    this.key,
-  });
+  const PurchesRouteArgs({required this.serviceModel, this.key});
 
   final _i12.ServiceModel serviceModel;
 
@@ -263,60 +189,78 @@ class PurchesRouteArgs {
   String toString() {
     return 'PurchesRouteArgs{serviceModel: $serviceModel, key: $key}';
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! PurchesRouteArgs) return false;
+    return serviceModel == other.serviceModel && key == other.key;
+  }
+
+  @override
+  int get hashCode => serviceModel.hashCode ^ key.hashCode;
 }
 
 /// generated route for
 /// [_i7.RegistrasionPage]
 class RegistrasionRoute extends _i11.PageRouteInfo<void> {
   const RegistrasionRoute({List<_i11.PageRouteInfo>? children})
-      : super(
-          RegistrasionRoute.name,
-          initialChildren: children,
-        );
+      : super(RegistrasionRoute.name, initialChildren: children);
 
   static const String name = 'RegistrasionRoute';
 
-  static const _i11.PageInfo<void> page = _i11.PageInfo<void>(name);
+  static _i11.PageInfo page = _i11.PageInfo(
+    name,
+    builder: (data) {
+      return const _i7.RegistrasionPage();
+    },
+  );
 }
 
 /// generated route for
 /// [_i8.SplashPage]
 class SplashRoute extends _i11.PageRouteInfo<void> {
   const SplashRoute({List<_i11.PageRouteInfo>? children})
-      : super(
-          SplashRoute.name,
-          initialChildren: children,
-        );
+      : super(SplashRoute.name, initialChildren: children);
 
   static const String name = 'SplashRoute';
 
-  static const _i11.PageInfo<void> page = _i11.PageInfo<void>(name);
+  static _i11.PageInfo page = _i11.PageInfo(
+    name,
+    builder: (data) {
+      return const _i8.SplashPage();
+    },
+  );
 }
 
 /// generated route for
 /// [_i9.TopupPage]
 class TopupRoute extends _i11.PageRouteInfo<void> {
   const TopupRoute({List<_i11.PageRouteInfo>? children})
-      : super(
-          TopupRoute.name,
-          initialChildren: children,
-        );
+      : super(TopupRoute.name, initialChildren: children);
 
   static const String name = 'TopupRoute';
 
-  static const _i11.PageInfo<void> page = _i11.PageInfo<void>(name);
+  static _i11.PageInfo page = _i11.PageInfo(
+    name,
+    builder: (data) {
+      return const _i9.TopupPage();
+    },
+  );
 }
 
 /// generated route for
 /// [_i10.TransactionPage]
 class TransactionRoute extends _i11.PageRouteInfo<void> {
   const TransactionRoute({List<_i11.PageRouteInfo>? children})
-      : super(
-          TransactionRoute.name,
-          initialChildren: children,
-        );
+      : super(TransactionRoute.name, initialChildren: children);
 
   static const String name = 'TransactionRoute';
 
-  static const _i11.PageInfo<void> page = _i11.PageInfo<void>(name);
+  static _i11.PageInfo page = _i11.PageInfo(
+    name,
+    builder: (data) {
+      return const _i10.TransactionPage();
+    },
+  );
 }

@@ -1,4 +1,4 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 import 'package:sims_ppob/data/models/regist_model.dart';
 
 import '../../common/result_state.dart';

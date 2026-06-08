@@ -6,19 +6,19 @@ import 'injection_container.dart';
 import 'presentation/pages/home/home_route.dart';
 
 @AutoRouterConfig(generateForDir: ['lib'])
-class RootRouter extends $RootRouter {
+class RootRouter extends RootStackRouter {
   @override
-  final List<AutoRoute> routes = [
-    AutoRoute(
-      page: SplashRoute.page,
-      path: '/',
-    ),
-    AutoRoute(page: LoginRoute.page, path: '/login'),
-    AutoRoute(page: RegistrasionRoute.page, path: '/regitrasion'),
-    AutoRoute(page: PurchesRoute.page, path: '/purches'),
-    homeRoutes,
-    RedirectRoute(path: '*', redirectTo: '/'),
-  ];
+  List<AutoRoute> get routes => [
+        AutoRoute(
+          page: SplashRoute.page,
+          path: '/',
+        ),
+        AutoRoute(page: LoginRoute.page, path: '/login'),
+        AutoRoute(page: RegistrasionRoute.page, path: '/regitrasion'),
+        AutoRoute(page: PurchesRoute.page, path: '/purches'),
+        homeRoutes,
+        RedirectRoute(path: '*', redirectTo: '/'),
+      ];
 }
 
 class AuthGuard extends AutoRouteGuard {
