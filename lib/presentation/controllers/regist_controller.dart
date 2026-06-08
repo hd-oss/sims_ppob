@@ -1,62 +1,62 @@
-import 'package:flutter_riverpod/legacy.dart';
+import 'dart:async';
+
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:sims_ppob/data/models/regist_model.dart';
 
-import '../../common/result_state.dart';
-import '../../domain/usecases/regist_usecase.dart';
+import '../../common/async_value_x.dart';
+import '../../di/usecase_providers.dart';
 
-class RegistState {
+part 'regist_controller.g.dart';
+
+/// State UI lokal untuk halaman registrasi.
+///
+/// Menyimpan flag visibilitas password (`isHide`) dan konfirmasi password
+/// (`isHideCofirm`), keduanya default `true`.
+class RegistUiState {
   final bool isHide;
   final bool isHideCofirm;
-  final RegistModel? params;
-  final ResultState<String>? registResult;
 
-  RegistState(
-      {this.params, this.isHideCofirm = true, this.isHide = true, this.registResult});
+  const RegistUiState({this.isHide = true, this.isHideCofirm = true});
 
-  RegistState copyWith({
-    bool? isHide,
-    bool? isHideCofirm,
-    ResultState<String>? registResult,
-    RegistModel? params,
-  }) {
-    return RegistState(
+  RegistUiState copyWith({bool? isHide, bool? isHideCofirm}) => RegistUiState(
         isHide: isHide ?? this.isHide,
-        params: params ?? this.params,
         isHideCofirm: isHideCofirm ?? this.isHideCofirm,
-        registResult: registResult ?? this.registResult);
-  }
+      );
 }
 
-class RegistController extends StateNotifier<RegistState> {
-  final RegistUseCase loginUseCase;
+/// Notifier state UI lokal untuk halaman registrasi.
+@riverpod
+class RegistUi extends _$RegistUi {
+  @override
+  RegistUiState build() => const RegistUiState();
 
-  RegistController(this.loginUseCase) : super(RegistState());
+  /// Membalik visibilitas password (involutif).
+  void toggleHide() => state = state.copyWith(isHide: !state.isHide);
 
-  Future<void> regist() async {
-    state = state.copyWith(registResult: ResultState.loading());
-    
-
-    try {
-      final result = await loginUseCase.regist(state.params);
-
-      state = state.copyWith(registResult: result);
-    } catch (e) {
-      state = state.copyWith(registResult: ResultState.error(e.toString()));
-    }
-  }
-
-  void setParams(String key, String value) {
-    final params =  state.params?.toJson() ?? {};
-    params[key] = value;
-    state = state.copyWith(params: RegistModel.fromJson(params));
-  }
-
-  void hidePassword() =>
-      state = state.copyWith(isHide: !state.isHide);
-
-  void hidePasswordConfrm() =>
+  /// Membalik visibilitas konfirmasi password (involutif).
+  void toggleHideConfirm() =>
       state = state.copyWith(isHideCofirm: !state.isHideCofirm);
 
-  void resetState ()=> state= RegistState();
-  
+  /// Mengembalikan flag ke keadaan awal (keduanya `true`).
+  void reset() => state = const RegistUiState();
+}
+
+/// AsyncNotifier untuk aksi registrasi pengguna.
+///
+/// `build` bersifat idle (tidak melakukan fetch saat inisialisasi). Aksi
+/// [regist] mengekspos keadaan loading, lalu data/error melalui `AsyncValue`.
+@riverpod
+class RegistAuth extends _$RegistAuth {
+  @override
+  FutureOr<void> build() {} // idle; tidak fetch saat init
+
+  /// Menjalankan registrasi. Hasil `Either` dari usecase dikonversi ke
+  /// `AsyncValue` melalui `unwrapEither` di dalam `AsyncValue.guard`.
+  Future<void> regist(RegistModel? params) async {
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(() async {
+      final result = await ref.read(registUseCaseProvider).regist(params);
+      return unwrapEither(result);
+    });
+  }
 }

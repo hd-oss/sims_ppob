@@ -1,26 +1,27 @@
-import '../../common/result_state.dart';
+import 'package:dartz/dartz.dart';
+
 import '../../data/models/regist_model.dart';
 import '../repositories/regist_repository.dart';
-
-
 
 class RegistUseCase {
   final RegistRepository repository;
 
   RegistUseCase(this.repository);
 
-  Future<ResultState<String>> regist(RegistModel? params) async {
+  /// Melakukan registrasi pengguna.
+  ///
+  /// Mengembalikan [Either] dengan [Left] berisi pesan kesalahan saat validasi
+  /// gagal atau registrasi gagal, dan [Right] berisi pesan sukses saat
+  /// berhasil. Konversi ke `AsyncValue` dilakukan di lapisan Notifier melalui
+  /// `unwrapEither`.
+  Future<Either<String, String>> regist(RegistModel? params) async {
     if (params == null) {
-      return ResultState.error('Lengkapi data');
+      return const Left('Lengkapi data');
     }
     if (params.password != params.confirmPassword) {
-      return ResultState.error('Password tidak sama');
+      return const Left('Password tidak sama');
     }
 
-    final result = await repository.regist(params.toJson());
-    return result.fold(
-      (message) => ResultState.error(message),
-      (data) => ResultState.success(data),
-    );
+    return repository.regist(params.toJson());
   }
 }
