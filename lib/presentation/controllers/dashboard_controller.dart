@@ -60,7 +60,7 @@ class DashboardController extends StateNotifier<DashboardState> {
       final result = await dashBoardUseCase.getProfile();
 
       state = state.copyWith(userData: result);
-    } on Exception catch (e) {
+    } catch (e) {
       state = state.copyWith(userData: ResultState.error(e.toString()));
     }
   }
@@ -70,8 +70,8 @@ class DashboardController extends StateNotifier<DashboardState> {
       final result = await dashBoardUseCase.getService();
 
       state = state.copyWith(serviceData: result);
-    } on Exception catch (e) {
-      state = state.copyWith(userData: ResultState.error(e.toString()));
+    } catch (e) {
+      state = state.copyWith(serviceData: ResultState.error(e.toString()));
     }
   }
 
@@ -80,8 +80,8 @@ class DashboardController extends StateNotifier<DashboardState> {
       final result = await dashBoardUseCase.getBalance();
 
       state = state.copyWith(balanceData: result);
-    } on Exception catch (e) {
-      state = state.copyWith(userData: ResultState.error(e.toString()));
+    } catch (e) {
+      state = state.copyWith(balanceData: ResultState.error(e.toString()));
     }
   }
 
@@ -90,8 +90,8 @@ class DashboardController extends StateNotifier<DashboardState> {
       final result = await dashBoardUseCase.getBanner();
 
       state = state.copyWith(bannerData: result);
-    } on Exception catch (e) {
-      state = state.copyWith(userData: ResultState.error(e.toString()));
+    } catch (e) {
+      state = state.copyWith(bannerData: ResultState.error(e.toString()));
     }
   }
 

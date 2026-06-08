@@ -6,7 +6,6 @@ import 'package:sims_ppob/app_router.gr.dart';
 import 'package:sims_ppob/data/models/service_model.dart';
 import 'package:sims_ppob/presentation/controllers/dashboard_controller.dart';
 import 'package:sims_ppob/presentation/providers/dashboard_provider.dart';
-import 'package:sims_ppob/presentation/providers/profile_provider.dart';
 
 @RoutePage()
 class DashboardPage extends ConsumerStatefulWidget {
@@ -20,12 +19,8 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(dashboardProvider);
-    final TextEditingController controller = TextEditingController();
 
     final userData = state.userData?.data;
-    controller.text = state.hideSaldo
-        ? '0000000'
-        : formatNumber(state.balanceData?.data) ?? '0';
 
     return SafeArea(
       child: SingleChildScrollView(
@@ -36,7 +31,7 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
             const SizedBox(height: 24),
             _buildWelcomeMessage(userData?.firstName, userData?.lastName),
             const SizedBox(height: 24),
-            _buildBalanceCard(context, state, controller),
+            _buildBalanceCard(context, state),
             const SizedBox(height: 24),
             _buildServiceGrid(state),
             const SizedBox(height: 24),
@@ -94,8 +89,10 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
     );
   }
 
-  Widget _buildBalanceCard(BuildContext context, DashboardState state,
-      TextEditingController balanceText) {
+  Widget _buildBalanceCard(BuildContext context, DashboardState state) {
+    final balanceText = state.hideSaldo
+        ? '••••••••'
+        : 'Rp ${formatNumber(state.balanceData?.data) ?? '0'}';
     return Container(
       decoration: BoxDecoration(
         gradient: const LinearGradient(
@@ -111,19 +108,15 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
             'Saldo anda',
             style: TextStyle(fontSize: 18, color: Colors.white),
           ),
-          TextFormField(
-            readOnly: true,
-            obscureText: state.hideSaldo,
-            controller: balanceText,
-            style: const TextStyle(
-                fontSize: 36, color: Colors.white, fontWeight: FontWeight.bold),
-            decoration: const InputDecoration(
-                focusedBorder: InputBorder.none,
-                enabledBorder: InputBorder.none,
-                contentPadding: EdgeInsets.zero,
-                prefix: Text('Rp ',
-                    style: TextStyle(fontSize: 32, color: Colors.white)),
-                border: InputBorder.none),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Text(
+              balanceText,
+              style: const TextStyle(
+                  fontSize: 36,
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold),
+            ),
           ),
           Row(children: [
             const Text('Lihat saldo',

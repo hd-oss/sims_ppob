@@ -1,10 +1,7 @@
 import 'dart:io';
 
-import 'package:auto_route/auto_route.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../app_router.gr.dart';
 import '../../common/result_state.dart';
 import '../../data/models/user_model.dart';
 import '../../domain/usecases/auth_usecase.dart';
@@ -24,12 +21,12 @@ class ProfileState {
   ProfileState copyWith({
     ResultState<UserModel>? userData,
     bool? isEditEvent,
-    bool? isEdiProfile,
+    bool? isEditImage,
   }) {
     return ProfileState(
       userData: userData ?? this.userData,
       isEditEvent: isEditEvent ?? this.isEditEvent,
-      isEditImage: isEdiProfile ?? this.isEditImage,
+      isEditImage: isEditImage ?? this.isEditImage,
     );
   }
 }
@@ -76,7 +73,7 @@ class ProfileController extends StateNotifier<ProfileState> {
   Future<void> editPicture({required File file}) async {
     state = state.copyWith(
         userData: ResultState.loading(state.userData?.data),
-        isEdiProfile: !state.isEditImage);
+        isEditImage: !state.isEditImage);
 
     try {
       final result = await profileUseCase.editImage(file,
@@ -84,12 +81,12 @@ class ProfileController extends StateNotifier<ProfileState> {
 
       state = state.copyWith(
         userData: result,
-        isEdiProfile: !state.isEditImage,
+        isEditImage: !state.isEditImage,
       );
     } catch (e) {
       state = state.copyWith(
           userData: ResultState.error(e.toString(), state.userData?.data),
-          isEdiProfile: !state.isEditImage);
+          isEditImage: !state.isEditImage);
     }
   }
 
@@ -97,7 +94,5 @@ class ProfileController extends StateNotifier<ProfileState> {
 
   void resetState() => state = ProfileState();
 
-  void logoutEvent(BuildContext context) =>
-      authUseCase.logout().then((value) => context.router
-          .pushAndPopUntil(const LoginRoute(), predicate: (_) => false));
+  Future<void> logout() => authUseCase.logout();
 }

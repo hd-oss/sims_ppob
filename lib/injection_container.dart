@@ -56,36 +56,19 @@ void init() {
   sl.registerLazySingleton<HistoryRepository>(
       () => HistoryRepositoryImpl(remoteDataSource: sl<RemoteDataSource>()));
 
-  // Register Repository
-  sl.registerLazySingleton<AuthRepositoryImpl>(() => AuthRepositoryImpl(
-      remoteDataSource: sl<RemoteDataSource>(),
-      secureStorageHelper: sl<SecureStorageHelper>()));
-  sl.registerLazySingleton<ProfileRepositoryImpl>(
-      () => ProfileRepositoryImpl(remoteDataSource: sl<RemoteDataSource>()));
-  sl.registerLazySingleton<RegistRepositoryImpl>(
-      () => RegistRepositoryImpl(remoteDataSource: sl<RemoteDataSource>()));
-  sl.registerLazySingleton<DashboardRepositoryImpl>(
-      () => DashboardRepositoryImpl(remoteDataSource: sl<RemoteDataSource>()));
-  sl.registerLazySingleton<TopupRepositoryImpl>(
-      () => TopupRepositoryImpl(remoteDataSource: sl<RemoteDataSource>()));
-  sl.registerLazySingleton<PurchesRepositoryImpl>(
-      () => PurchesRepositoryImpl(remoteDataSource: sl<RemoteDataSource>()));
-  sl.registerLazySingleton<HistoryRepositoryImpl>(
-      () => HistoryRepositoryImpl(remoteDataSource: sl<RemoteDataSource>()));
-
-  // Register UseCase
+  // Register UseCase (bergantung pada abstraksi repository, bukan implementasi)
   sl.registerLazySingleton<AuthUseCase>(
-      () => AuthUseCase(sl<AuthRepositoryImpl>()));
+      () => AuthUseCase(sl<AuthRepository>()));
   sl.registerLazySingleton<ProfileUseCase>(
-      () => ProfileUseCase(sl<ProfileRepositoryImpl>()));
+      () => ProfileUseCase(sl<ProfileRepository>()));
   sl.registerLazySingleton<RegistUseCase>(
-      () => RegistUseCase(sl<RegistRepositoryImpl>()));
+      () => RegistUseCase(sl<RegistRepository>()));
   sl.registerLazySingleton<DashBoardUseCase>(
-      () => DashBoardUseCase(sl<DashboardRepositoryImpl>()));
+      () => DashBoardUseCase(sl<DashboardRepository>()));
   sl.registerLazySingleton<TopupUseCase>(
-      () => TopupUseCase(sl<TopupRepositoryImpl>()));
+      () => TopupUseCase(sl<TopupRepository>()));
   sl.registerLazySingleton<PurchesUseCase>(
-      () => PurchesUseCase(sl<PurchesRepositoryImpl>()));
+      () => PurchesUseCase(sl<PurchesRepository>()));
   sl.registerLazySingleton<HistoryUseCase>(
-      () => HistoryUseCase(sl<HistoryRepositoryImpl>()));
+      () => HistoryUseCase(sl<HistoryRepository>()));
 }

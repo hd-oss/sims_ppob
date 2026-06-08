@@ -66,12 +66,10 @@ class ApiService {
   }
 
   Future<Response> put(String path,
-      {Object? data,
-      required bool requiresAuthToken,
-      dynamic prameters}) async {
+      {required bool requiresAuthToken, dynamic prameters}) async {
     if (requiresAuthToken) await _setToken();
     if (prameters is FormData) {
-      _dio.options.headers['Content-Type'] = ' multipart/form-data';
+      _dio.options.headers['Content-Type'] = 'multipart/form-data';
     }
     return await _dio.put(path, data: prameters);
   }

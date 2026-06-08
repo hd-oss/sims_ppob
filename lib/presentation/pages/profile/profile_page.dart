@@ -10,6 +10,7 @@ import '../../../common/result_state.dart';
 import '../../../common/snackbar_helper.dart';
 import '../../../common/validation_helper.dart';
 import '../../../data/models/user_model.dart';
+import '../../../app_router.gr.dart';
 import '../../controllers/profile_controller.dart';
 import '../../providers/profile_provider.dart';
 
@@ -261,7 +262,12 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
         backgroundColor: isEdit ? Colors.red : Colors.white,
         foregroundColor: !isEdit ? Colors.red : Colors.white,
       ),
-      onPressed: () => ref.read(profileProvider.notifier).logoutEvent(context),
+      onPressed: () async {
+        await ref.read(profileProvider.notifier).logout();
+        if (!context.mounted) return;
+        context.router
+            .pushAndPopUntil(const LoginRoute(), predicate: (_) => false);
+      },
       child: const Text('Logout'),
     );
   }

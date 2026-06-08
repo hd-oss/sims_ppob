@@ -29,7 +29,7 @@ class RemoteDataSource {
   Future<Either<String, String>> topUp(String amount) async {
     try {
       final response = await apiService.post('/topup',
-          data: {"top_up_amount": amount}, requiresAuthToken: false);
+          data: {"top_up_amount": amount}, requiresAuthToken: true);
       if (response.statusCode == 200) {
         return Right(response.data['data']['balance']);
       } else {
@@ -43,7 +43,7 @@ class RemoteDataSource {
   Future<Either<String, String>> purches(String serviceCode) async {
     try {
       final response = await apiService.post('/transaction',
-          data: {"service_code": serviceCode}, requiresAuthToken: false);
+          data: {"service_code": serviceCode}, requiresAuthToken: true);
       if (response.statusCode == 200) {
         return Right(response.data['message']);
       } else {
